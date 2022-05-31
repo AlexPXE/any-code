@@ -13,10 +13,6 @@
 # production
 /dist
 
-# test file
-/src/js/test.js
-
-
 # misc
 .DS_Store
 .env.local

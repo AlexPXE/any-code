@@ -1,0 +1,26 @@
+{
+    "plugins": ["plugins/markdown"],    
+    "source": {
+        "includePattern": ".js$",
+        "excludePattern": "(docs|node_module/)",
+        "include": ["src"],
+        "exclude": ["node_modules", "docs"]
+    },
+    "sourceType": "module",
+    "tags": {
+        "allowUnknownTags": true,
+        "dictionaries": ["jsdoc","closure"]
+    },    
+    "templates": {
+        "cleverLinks": true,
+        "monospaceLinks": true,
+        "default": {
+            "useLongnameInNav": true            
+        }
+    },
+    "opts": {        
+        "destination": "./docs/",          
+        "recurse": true,                  
+        "tutorials": "./docs/tutorials" 
+    }
+}

@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+        "target": "es2020",
+        "module": "ES6",
+        "checkJs": true
+    },
+    "iclude": ["src/**/*.js"]
+}

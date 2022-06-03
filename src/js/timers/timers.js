@@ -131,7 +131,7 @@ class ReverseTimer {
 export {ReverseTimer};
 
 
-
+/*
 class Foo {
     constructor(name) {
         this.text = '';
@@ -157,7 +157,6 @@ const classFactory =
         };
     };
 
-
 const newFoo = classFactory(Foo);
 
 const timeContainer = {
@@ -176,6 +175,4 @@ someTimer.startTimer(-20);
 
 //console.log(~~((Date.parse('2022-06-03T00:41:30') - Date.now()) / 1000));
 
-
-
-
+*/

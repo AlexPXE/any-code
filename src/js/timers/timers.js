@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Just different timer classes.
+ * **Just different timer classes and functions.**
  * 
  * @module timers
  */
@@ -23,7 +23,58 @@
 
 
 /**
- * The ReverseTimer class dose not have such features as pause/resume.
+ * **Interface for classes that represent a timers.**
+ * 
+ * @interface Timer
+ */
+ class Timer {          
+ 
+     constructor() {
+        if(this.constructor === Timer) {
+            throw new TypeError(`Cannot construct Timer instances directly!`);
+        }        
+     }
+
+     /**
+      * Starts the timer.
+      */
+     start() {
+        throw new Error(`${ this.constructor.name }: Not implemented!`);
+     }
+
+     /**
+      * Stops the timer.
+      */
+     stop() {
+        throw new Error(`${ this.constructor.name }: Not implemented!`);
+     }
+
+     /**
+      * Resets the timer.
+     */
+     reset() {
+        throw new Error(`${ this.constructor.name }: Not implemented!`);
+     }
+
+     /**
+      * Pauses the timer.
+      */
+     pause() {
+        throw new Error(`${ this.constructor.name }: Not implemented!`);
+     }
+
+    /**
+     * Resumes the timer.
+     */
+    resume() {
+        throw new Error(`${ this.constructor.name }: Not implemented!`);
+    }
+ }
+
+
+/**
+ * The ReverseTimer class dose not have such features as pause/resume, it does not implements the [Timer interface]{@link module:timers~Timer}.
+ * 
  */
 class ReverseTimer {
     /**
@@ -60,8 +111,9 @@ class ReverseTimer {
         
 
         /**
+         * 
          * Stops the timer. Values ​​of the output elements will not be set to zero.
-         * @returns {void}
+         * @returns {void}         * 
          */
         this.stopTimer = () => {
             if(timerId !== undefined) {
@@ -76,10 +128,10 @@ class ReverseTimer {
          * Start the timer. If the timer is already running, then it will be stopped and restarted with the new deadline.      
          * 
          * @param {string|number} deadLine String date in the format 'YYYY-MM-DD HH:MM:SS' or any format date 
-          compatible with the RFC2822 / IETF or ISO 8601 standard or number of second.
-          (see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse MDN Web Docs}).          
+         * compatible with the RFC2822 / IETF or ISO 8601 standard or number of second.
+         * (see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse MDN Web Docs}).          
          * @returns {void}
-         * @throws {Error} If the deadline is not valid.
+         * @throws {Error} If the *deadLine* is not valid.
          */
 
         this.startTimer = deadLine => {
@@ -131,19 +183,35 @@ class ReverseTimer {
     }
 }
 
-
 /**
- * Creates a new new  ReverseTimer instance and returns start timer function for the instance.
- * @param {TimerOutput} TimerOutput
- * @returns {Function} Start timer function. 
+ * Creates a new **ReverseTimer** instance and returns start timer function for the instance.
+ * * For example:  
+ *  ```JavaScript 
+ *     const startAgain = newReverseTimer(timerOutput)('2022-06-04T17:28:00')()(); //etc...
+ * ```  
+ * or
+ *  ```JavaScript 
+ *     const start = newReverseTimer(timerOutput); //inicialization timer
+ *     const stop = start('2022-06-04T17:28:00');  //start timer
+ *     const reset = stop();                       //stop timer
+ *     const startAgain = reset();                 //reset timer
+ *     startAgain('2022-06-04T17:40:00');          //start again etc...
+ * ```
+ * * *newReverseTimer(timerOutput) => startTimer("2022-06-04T17:28:00") => stopTimer() => resetTimer() => startTimer("2022-06-04T17:40:00");*
+ * 
+ * @function newReverseTimer 
+ * @param {TimerOutput} timerOutput [See TimerOutput]{@link module:timers~TimerOutput}
+ * @returns {Function} Start timer function.
+ * @tutorial newReverseTimer 
  */
-const newReverseTimer = TimerOutput => {    
-    let {startTimer, stopTimer, resetTimer} = new ReverseTimer(TimerOutput);
+const newReverseTimer = timerOutput => {    
+    let {startTimer, stopTimer, resetTimer} = new ReverseTimer(timerOutput);
 
     /**
      * Starts the timer and returns the stop timer function.
+     * @function start     
      * @param {string|number} deadLine 
-     * @returns {Function} Stop timer function.
+     * @returns {Function} Stop timer function.     
      */
     const start  = deadLine => {
         startTimer(deadLine);
@@ -169,43 +237,3 @@ const newReverseTimer = TimerOutput => {
 };
 
 export {ReverseTimer, newReverseTimer};
-
-
-
-class Foo {
-    constructor(name) {
-        this.text = '';
-        this.name = name + ': ';
-    }
-
-    set textContent(text) {
-        this.text = text;
-        console.log(this.name, this.text);
-    }
-}
-
-const timerOutputFactory = () => {    
-    return {
-        days: new Foo('days'),
-        hours: new Foo('hours'),
-        minutes: new Foo('minutes'),
-        seconds: new Foo('seconds')    
-    };
-};
-
-const stopTimer = newReverseTimer( timerOutputFactory() )('2022-06-04 16:44:00');
-
-setTimeout(() => {
-    stopTimer()();
-    setTimeout(stopTimer, 10000);
-}, 10000);
-
-
-
-
-
-/*
-
-//console.log(~~((Date.parse('2022-06-03T00:41:30') - Date.now()) / 1000));
-
-*/

@@ -21,6 +21,6 @@
     "opts": {        
         "destination": "./docs/",          
         "recurse": true,                  
-        "tutorials": "./docs/tutorials" 
+        "tutorials": "./tutorials"         
     }
 }

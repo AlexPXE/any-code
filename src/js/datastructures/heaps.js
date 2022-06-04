@@ -5,6 +5,7 @@
  * @module heaps
  */
 
+
 class MaxBinHeap {  
       
     /**
@@ -254,61 +255,3 @@ class MaxBinHeap {
 }
 
 export { MaxBinHeap };
-
-
-
-
-
-
-
-
-class Foo {
-    constructor() {     
-        this.b = 'b';
-    }
-
-    func() {
-        console.log('Not implemented!');
-    }
-}
-    
-class Zoo extends Foo{
-    constructor(c) {
-        super();
-        this.c = 'c';
-    }
-
-    func() {
-        const {b, c} = this;
-        console.log(this.b, this.c);
-    }
-}
-
-const v = new Zoo();
-
-/**
- * 
- * @param {Foo} foo 
- */
-function fg(foo) {
-    foo.func();
-}
-
-fg(v);
-
-
-/**
- * 
- * @param { {
- *          w:{textContent:string},
- *          b:{textContent:string}, 
- *          n:{textContent:string}
- * } } param0 
- */
-function fg2({w,b,n}) {
-   console.log(w.textContent, b.textContent, n.textContent);
-}
-
-const div = document.querySelector('div');
-
-fg2({w: div, b: div, n: div});

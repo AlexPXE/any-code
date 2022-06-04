@@ -64,8 +64,12 @@ class ReverseTimer {
          * @returns {void}
          */
         this.stopTimer = () => {
-            timerId = clearInterval(timerId);
-            console.log('Stop timer!');            
+            if(timerId !== undefined) {
+                timerId = clearInterval(timerId);                
+                return console.log('Stop timer!');
+            } 
+            
+            return console.log('Timer not running!');
         };
         
         /**
@@ -124,14 +128,50 @@ class ReverseTimer {
 
             display(0);
         };
-    }   
-    
+    }
 }
 
-export {ReverseTimer};
+
+/**
+ * Creates a new new  ReverseTimer instance and returns start timer function for the instance.
+ * @param {TimerOutput} TimerOutput
+ * @returns {Function} Start timer function. 
+ */
+const newReverseTimer = TimerOutput => {    
+    let {startTimer, stopTimer, resetTimer} = new ReverseTimer(TimerOutput);
+
+    /**
+     * Starts the timer and returns the stop timer function.
+     * @param {string|number} deadLine 
+     * @returns {Function} Stop timer function.
+     */
+    const start  = deadLine => {
+        startTimer(deadLine);
+
+        /**
+         * Returns a function that resets the timer.
+         * @return {Function} Reset timer function.
+         */
+        return () => {
+            stopTimer();
+            /**
+             * Resets timer and returns the start timer function.
+             * @return {Function} Start timer function.
+             */
+            return () => {
+                resetTimer();
+                return start;
+            };
+        };
+    };
+
+    return start;
+};
+
+export {ReverseTimer, newReverseTimer};
 
 
-/*
+
 class Foo {
     constructor(name) {
         this.text = '';
@@ -144,34 +184,27 @@ class Foo {
     }
 }
 
-const classFactory = 
-    className => {
-        const cache = new Map();
-
-        return name => {
-                if(!cache.has(name)) {
-                    cache.set(name, new className(name));
-                }
-
-                return cache.get(name);
-        };
+const timerOutputFactory = () => {    
+    return {
+        days: new Foo('days'),
+        hours: new Foo('hours'),
+        minutes: new Foo('minutes'),
+        seconds: new Foo('seconds')    
     };
-
-const newFoo = classFactory(Foo);
-
-const timeContainer = {
-    days: newFoo('days'),
-    hours: newFoo('hours'),
-    minutes: newFoo('minutes'),
-    seconds: newFoo('seconds')    
 };
 
-const someTimer = new ReverseTimer(timeContainer);
+const stopTimer = newReverseTimer( timerOutputFactory() )('2022-06-04 16:44:00');
+
+setTimeout(() => {
+    stopTimer()();
+    setTimeout(stopTimer, 10000);
+}, 10000);
 
 
-someTimer.startTimer(-20);
 
-//someTimer.startTimer('2022-06-03T03:57:00');
+
+
+/*
 
 //console.log(~~((Date.parse('2022-06-03T00:41:30') - Date.now()) / 1000));
 

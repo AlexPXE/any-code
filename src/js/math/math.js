@@ -112,16 +112,18 @@ function gcd(n, m) {
 /**
  * The eulert() function calculates the Euler's totient function of a number.
  * 
- * @param {number} n 
- * @returns 
+ * @param {number} n Number to calculate Euler's totient function.
+ * @returns {number} Euler's totient function of n.
  */
 function eulert(n) {
     let d = 0;
     for(let i = 1; i < n; i++) {
-        if (gcd(n, i) === 1) {
+        if ( gcd(n, i) === 1) {
             console.log(` ${n},  ${i}`);
             d++;
         }
     }
     return d;
 }
+
+export { random, fastPow, modExp, modExpRecur, gcd, eulert };

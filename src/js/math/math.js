@@ -98,3 +98,30 @@ const modExpRecur = (a, p, m) => {
 };
 
 
+/**
+ * The gcd() function calculates the greatest common divisor of two numbers.
+ * 
+ * @param {number} n First number.
+ * @param {number} m Second number.
+ * @returns {number} gcd of n and m.
+ */
+function gcd(n, m) {
+    return m === 0 ? n : gcd(m, n % m);
+}
+
+/**
+ * The eulert() function calculates the Euler's totient function of a number.
+ * 
+ * @param {number} n 
+ * @returns 
+ */
+function eulert(n) {
+    let d = 0;
+    for(let i = 1; i < n; i++) {
+        if (gcd(n, i) === 1) {
+            console.log(` ${n},  ${i}`);
+            d++;
+        }
+    }
+    return d;
+}

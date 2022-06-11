@@ -1,6 +1,6 @@
 "use strict";
 
-import { random, fastPow, modExp, modExpRecur, gcd, eulert } from './Other/src/js/math/math.js';
+import { random, fastPow, modExp, modExpRecur, gcd, eulert } from '../math/math.js';
 
 
 const alphabet = [
@@ -24,10 +24,7 @@ console.log(eulert(any), eulert(25), eulert(31));
 
 
 function fermaTest(n) {
-    const a = random(n-1, 2);
-
-    console.log('random', a);
-    return (fastPow(a, n-1) % n);
+    
 }
 
 
@@ -77,100 +74,4 @@ const Crypto = (function() {
     
 })();
 
-
-
-console.log('qqq' === 'qqq');
-//singleton constructor
-const Singleton = new (function() {
-    const instance = this;
-    
-    const proxy = {
-        get a() {
-            return instance.a;
-        },
-
-        get b() {
-            return instance.b;
-        },
-
-        set a(value) {
-            if(value === undefined) {
-                throw new Error('Value is undefined');
-            }
-
-            instance.a = value;
-        },
-
-        set b(value) {
-            if(value === undefined) {
-                throw new Error('Value is undefined');
-            }
-            instance.b = value;
-        }
-    };
-
-    this.a = 1;
-    this.b = 2;
-
-    return function() {        
-        return proxy;
-    };    
-})();
-
-
-const singleton = new Singleton();
-const singletonA = new Singleton();
-
-console.log(singleton.a, singletonA.a);
-
-
-//Singleton
-class SingletonClass {
-    constructor() {        
-        const instCostructor =  this.constructor;
-
-        if(!instCostructor.instance || !instCostructor.hasOwnProperty('instance')) {            
-            
-            (() => {
-                const instance = this;
-                let a = 1;
-                let b = 2;
-
-                Object.defineProperty(this, 'a', {
-                    get () {
-                        return a;
-                    },
-                    set (value) {
-                        a = value;
-                    }
-                });
-
-                Object.defineProperty(this, 'b', {
-                    get () {
-                        return b;
-                    },
-                    set (value) {
-                        b = value;
-                    }
-                });
-
-                Object.defineProperty(instCostructor, 'instance', {
-                    get () {
-                        return instance;
-                    },
-                    set (value) {
-                        throw Error('Cannot set instance!');
-                    }
-                });
-
-            })();
-        }
-
-        return instCostructor.instance;
-    }
-
-    sum() {
-        return this.a + this.b;
-    }
-}
 

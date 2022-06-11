@@ -173,7 +173,7 @@ function eulerst(n) {
  * @param {bigint} max Maximal value of the random number.
  * @returns {bigint} Random bigint number.
  */
-function randomBigInt(max) {    
+function randomBigInt(min, max) {    
 
     if(typeof max !== 'bigint' || max < BIG_ZERO) {        
         throw new Error('Function randomBigInt() only accepts positive numbers of type bigint.');
@@ -186,7 +186,7 @@ function randomBigInt(max) {
             if(i > 0) {                
                 return '' + random(INT_ZERO, 10**(str.length) - 1);
             }        
-            return '' + random(INT_ZERO, +str - 1);
+            return '' + random(Number(min), +str - 1);
         })
         .join(''));       
 }
@@ -194,30 +194,46 @@ function randomBigInt(max) {
 
 
 /**
- * The fermat() function calculates the Fermat's primality test of a number.
+ * The fermaTestR calculates the Fermat's primality test of a number.
  * [a**(p-1) % p = 1 for all a < p.](https://en.wikipedia.org/wiki/Fermat_primality_test)
  * 
  * @param {bigint} p Estimated prime number.
  * @param {number} checks Quantity of checks. The more checks, the more accurate the result, but the longer the calculation time.
  * @returns {boolean} True if the number is prime, false if the number is not prime.
  */
-function fermaTest(p, checks = INT_ONE) {        
-
-    const a = randomBigInt(p);
-
-    
+function fermaTestR(p, checks = INT_ONE) {
+    const a = randomBigInt(BIG_TWO ,p);   
 
     if(checks > 0) {
-        return modExp(a, p - BIG_ONE, p) !== BIG_ONE ? false  : fermaTest(p, --checks);
+        return modExp(a, p - BIG_ONE, p) !== BIG_ONE ? false  : fermaTestR(p, --checks);
     }
     
     return true;
 }
 
 
+function fermaTest(p, checks = INT_ONE) {
+    
+    if(p < 2n) {
+        return false;
+    }
 
-console.log(fermaTest(BIG_TWO));
+    for(let i = 0; i < checks; i++) {
+        
+        const a = randomBigInt(BIG_TWO, p);
+        console.log('da = ' + a);
+        if(modExp(a, p - 1n, p) !== 1n) {
+            return false;
+        }
+
+    }
+    return true;
+}
+
+
+console.log('r', fermaTestR(13n, 2));
+console.log('d', fermaTest(13n, 2));
 
 
 
-export { random, fastPow, modExp, modExpR, gcd, eulerst };
+export { random, fastPow, modExp, modExpR, gcd, eulerst, randomBigInt, fermaTestR, fermaTest };

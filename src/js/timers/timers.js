@@ -103,10 +103,10 @@ class ReverseTimer {
          * @returns {void}
          */
         const display = sec => {                        
-            days.textContent = zeroBefore(~~(sec / 86400));
-            hours.textContent = zeroBefore(~~((sec % 86400) / 3600));
-            minutes.textContent = zeroBefore( ~~(sec / 60) % 60);
-            seconds.textContent = zeroBefore(sec % 60);            
+            days.textContent = zeroBefore(~~(sec / 86400));             // ~~(sec / seconds in a day)
+            hours.textContent = zeroBefore(~~((sec % 86400) / 3600));   // ~~(sec % seconds in a day) / seconds in an hour 
+            minutes.textContent = zeroBefore( ~~(sec / 60) % 60);       // ~~(sec / seconds in a minute) % minutes in an hour
+            seconds.textContent = zeroBefore(sec % 60);                 // sec % seconds in a minute
         };
         
 

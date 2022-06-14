@@ -260,8 +260,7 @@ function fermaTest(p, checks = FERMAS_TEST_DEFAULT_CHECKS) {
 
     for(let i = 0; i < checks; i++) {
         
-        const a = randomBigInt(FERMAS_TEST_MIN_RANDOM_NUMBER, p);
-        console.log('da = ' + a);
+        const a = randomBigInt(FERMAS_TEST_MIN_RANDOM_NUMBER, p);        
         if(modExp(a, p - 1n, p) !== 1n) {
             return false;
         }
@@ -271,9 +270,40 @@ function fermaTest(p, checks = FERMAS_TEST_DEFAULT_CHECKS) {
 }
 
 
-console.log('r', fermaTestR(21377n, 2));
-console.log('d', fermaTest(21377n, 2));
-console.log('e', eulerst(21377));
+
+
+/**
+ * The gcdExBigInt() computes, in addition to the gcd, the coefficients **a** and **b** of the equation __a*x + b*y = gcd(x, y)__.
+ * See [the Extended Euclidean algorithm](https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm) for more information.  
+ * **BigInt only.**
+ * 
+ * @param {bigint} a First number.
+ * @param {bigint} b Second number.
+ * @returns {bigint[]} Array with the coefficients a and b of the equation a*x + b*y = gcd(x, y) and the gcd of a and b ([x, y, gcd(a, b)]).
+ */
+function gcdExBigInt(a, b) {
+    if (b === BIG_ZERO) {
+        return [BIG_ONE, BIG_ZERO, a];
+    }
+    const [q, r] = [a / b, a % b];
+    const [s, t, g] = gcdExBigInt(b, r);
+    return [t, s - q * t, g];    
+}
+
+
+
+
+//console.log(test(48, 23));
+
+
+
+//console.log('r', fermaTestR(21377n, 2));
+//console.log('d', fermaTest(21377n, 2));
+//console.log('e', eulerst(21377));
+
+
+
+
 
 export { 
     random, 
@@ -284,5 +314,6 @@ export {
     eulerst, 
     randomBigInt, 
     fermaTestR, 
-    fermaTest 
+    fermaTest,
+    gcdExBigInt
 };

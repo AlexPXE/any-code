@@ -1,6 +1,17 @@
 "use strict";
 
-import { random, fastPow, modExp, modExpRecur, gcd, eulert } from '../math/math.js';
+import { 
+    random, 
+    fastPowBig, 
+    modExpBig, 
+    modExpBigR, 
+    gcd, 
+    eulerst, 
+    randomBig, 
+    fermaTestBigR, 
+    fermaTestBig,
+    gcdExBig
+} from '../math/math.js';
 
 
 const alphabet = [
@@ -13,65 +24,13 @@ const alphabet = [
 ];
 
 
-let any = 25 * 31;
-
-console.log(eulert(any), eulert(25), eulert(31));
-
+console.log(fermaTestBigR(21377n, 2), fermaTestBig(21377n, 2));
+console.log(modExpBigR(21377n, 2234513n, 21323577n), modExpBig(21377n, 2234513n, 21323577n));
 
 
 
 
-
-
-function fermaTest(n) {
-    
+for(let i = 0; i < 30; i++) {
+    console.log(1 - Math.random());
 }
-
-
-const Crypto = (function() {
-
-    function random(max, min = 0) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    
-
-    function* generateSequence(alphabet, max = 7, min = 2) {
-
-        let seqLength = random(max, min);
-        const alphLength = alphabet.length - 1;
-
-        while(seqLength > 0) {
-            yield alphabet[ random(alphLength, min) ];
-            seqLength--;
-        }       
-        
-    }
-
-    return class Crypto {
-        constructor(alphabet) {
-    
-            const dict = new Map();   
-            const length = alphabet.length;
-
-            alphabet.forEach( (char, index) => {
-                dict.set(char, randomSubseq(alphabet));
-            });
-        }
-
-
-        encrypt(filename, password) {
-    
-        }
-    
-        
-    
-        uncrypt(filename, password) {
-    
-        }
-        
-    }
-    
-})();
-
 

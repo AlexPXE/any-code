@@ -1,5 +1,6 @@
 
 "use strict";
+import { Llist } from "../datastructures/llist.js";
 
 /**
  * The math module contains functions for mathematical operations.
@@ -17,12 +18,283 @@ const BIG_TWO = 2n;
 const FERMAS_TEST_DEFAULT_CHECKS = INT_ONE;
 const FERMAS_TEST_MIN_RANDOM_NUMBER = BIG_TWO;
 
+const REGEXP_FOR_COMMONFRACTIONBIG_CLASS = /(\()|(\))|((?<=\(|^)[+\-]?\d+\/[+\-]?\d+)|(\d+\/[+\-]?\d+)|([\*:]|(?<=\d|\))[+\-])/g;    
+
+
+
+
+
+class Operators {
+    constructor(operator = '', priority = 0, type = '', method = '') {
+        this.name = operator;
+        this.priority = priority;
+        this.type = type;
+        this.method = method;
+    }
+
+    methPriority(n = 0) {
+        
+        return {            
+            priority: this.priority + n,
+            method: this.method
+        };
+    }
+}
+
+
+
+const checkOperator = (function () {        
+
+    const def = new Operators();
+    
+    const op = new Map([
+        ['+', new Operators('+', 0, 'operator', 'sum')],
+        ['-', new Operators('-', 0, 'operator', 'diff')],
+        ['*', new Operators('*', 1, 'operator','mult')],
+        ['/', new Operators('/', 1, 'operator', 'div')],
+        [')', new Operators(')', 1, 'down')],
+        ['(', new Operators('(', 1, 'up')],        
+    ]);
+
+    return str => {
+        return op.has(str) ? op.get(str) : def;
+    };
+})();
+
+
+
+class CommonFructionBig {
+    constructor(commFr = '1/1') {
+        
+        let numerator = 0n;
+        let denominator = 1n;
+
+        Object.defineProperties(this, {
+            numerator: {
+                get() {
+                    return numerator;
+                },
+                set(value) {
+                    if(typeof value !== 'bigint') {
+                        throw new Error('The numerator must be a bigint.');
+                    }
+                    
+                    numerator = value;                
+                }
+            },
+
+            denominator:{
+                get() {
+                    return denominator;
+                },
+
+                set(value) {
+                    if(typeof value !== 'bigint') {
+                        throw new Error('The denominator must be a bigint.');
+                    }
+
+                    if(value === BIG_ZERO) {
+                        
+                        numerator = BIG_ZERO;
+                        denominator = BIG_ONE;
+
+                    } else if(value < BIG_ZERO) {
+
+                        numerator = -numerator;
+                        denominator = -value;
+                        
+                    } else {
+                        denominator = value;
+                    }
+                    
+                }
+            },
+
+            strFormat: {
+                get() {
+                    return `${numerator}/${denominator}`;
+                },
+
+                set(str) {
+                    if(!/^-?\d+\/-?\d+$/.test(str)) {
+                        throw new Error('The common fraction must be in the format of "numerator/denominator". Example: "1/2", "3/4", "5/6", etc.');    
+                    }
+
+                    this.numerator = BigInt(commFr.split('/')[0]);
+                    this.denominator = BigInt(commFr.split('/')[1]);
+                }
+            },
+            
+        });
+
+        if(typeof commFr) {
+
+        }
+        this.strFormat = commFr;        
+    }
+
+    [Symbol.toPrimitive](hint) {
+        return this.strFormat;
+    }
+
+    static arithmeticParse(str) {
+
+        let level = 0;                  
+        const stack = new Llist();      
+
+        const result = str.replace(/\s+/g, '')
+            .match(REGEXP_FOR_COMMONFRACTIONBIG_CLASS);
+            
+
+        for(let value of result) {            
+            const operator = checkOperator(value);
+            
+            switch(operator.type) {
+                case 'up':
+                    level++;
+                    break;
+
+                case 'down':
+                    level--;
+                    break;
+
+                case 'operator':  
+
+                
+                  let prevpri = stack.tail.prev ? stack.tail.prev.value.priority : 0;                  
+                  const curroperator = operator.methPriority(level + prevpri);
+                  const currpri = curroperator.priority;
+
+                  while(stack.length > 1) {                        
+
+                        if(prevpri < currpri) {
+                            break;
+                        }
+
+                        const y = stack.pop();
+                        const op = stack.pop();
+                        const x = stack.pop();
+                        stack.push(x[op.method](y));
+
+                        prevpri = stack.tail.prev ? stack.tail.prev.priority : 0;
+                  }                 
+                  
+                  stack.push(curroperator);
+                  break;  
+                    
+                default:
+                    stack.push(new CommonFructionBig(value));
+                   
+            }
+        }
+
+        while(stack.length > 1) {                                    
+
+            const y = stack.pop();
+            const op = stack.pop();
+            const x = stack.pop();
+            stack.push(x[op.method](y));            
+        }
+
+        return stack.pop();
+    }
+
+
+
+    div(commFr = '0/1') {
+        if(typeof commFr === 'string') {
+            return new CommonFructionBig(commFr);
+        }
+
+        return this.mult(commFr.inverse());
+    }
+
+    mult(commFr = '0/1') {
+        const {numerator: bX, denominator: bY} = commFr;
+        const {numerator: aX, denominator: aY} = this;
+
+        return new CommonFructionBig(`${aX * bX}/${aY * bY}`);
+    }
+    
+   
+    sum(commFr = '0/1') {
+        if(typeof commFr === 'string') {
+            return this.sum( new CommonFructionBig(commFr) );
+        }
+
+        const [{numerator: numerX, denominator: denomX}, {numerator: numerY, denominator: denomY}] = [this, commFr];        
+
+        const lcm = lcmBig(denomX, denomY);
+        const result = `${numerX * (lcm / denomX) + numerY * (lcm / denomY)}/${lcm}`;
+
+        return new CommonFructionBig(result);
+    }
+
+    diff(commFr = '0/1') {
+        if(typeof commFr === 'string') {
+            return this.diff( new CommonFructionBig(commFr) );
+        }
+
+        return this.sum(commFr.mult('-1/1'));
+    }
+    
+
+    reduce() {
+        if(this.numerator === 0n) {            
+            return new CommonFructionBig('0/1');
+        }        
+
+        const {numerator, denominator} = this;
+        const gcd = gcdBig(numerator, denominator);        
+        
+        return new CommonFructionBig(`${numerator / gcd}/${denominator / gcd}`);
+    }
+
+    inverse() {
+        if(this.numerator === 0) {
+            return new CommonFructionBig('0/1');
+        }
+
+        return new CommonFructionBig(`${this.denominator}/${this.numerator}`);
+    }
+}
+
+console.log(new CommonFructionBig('224/2').sum('2/2').reduce().strFormat);
+
+function lcm(a, b) {    
+
+    if(typeof a !== 'number' && typeof b !== 'number') {
+        throw new Error('Function lcm() only accepts type of "number".');
+    }
+
+    return (a * b) / gcd(a, b);
+}
+
+/**
+ * 
+ * @param {bigint} a 
+ * @param {bigint} b 
+ * @returns {bigint}
+ */
+function lcmBig(a, b) {
+    if(typeof a !== 'bigint' && typeof b !== 'bigint') {
+        throw new Error('Function lcm() only accepts type of "number".');
+    }
+    return (a * b) / gcdBig(a, b);
+}
+
+function absBig(n) {
+    return n < BIG_ZERO ? -n : n;
+}
+
+
 
 /**
  * The random(max, min) function returns a random integer between min and max (inclusive).
+ * Wrks with positive numbers only.
  * 
- * @param {Number} max  The upper limit of the range.
- * @param {Number} min The lower limit of the range.
+ * @param {Number} max  The upper limit of the range including the value max.
+ * @param {Number} min The lower limit of the range including the value min.
  * @returns {Number} A random integer between min and max (inclusive).
  * @throws {Error} If max > min.
  * @throws {Error} If max < 0 or min < 0.
@@ -227,18 +499,19 @@ function randomBig(min, max) {
 }
 
 /**
- * The fermaTestBigBigR() calculates the Fermat's primality test of a number. Recursive version.
+ * The fermaTestBig() calculates the Fermat's primality test of a number. Recursive version.
  * [a**(p-1) % p = 1 for all a < p.](https://en.wikipedia.org/wiki/Fermat_primality_test)
  * 
  * @param {bigint} p Estimated prime number.
  * @param {number} [checks = FERMAS_TEST_DEFAULT_CHECKS] Quantity of checks. The more checks, the more accurate the result, but the longer the calculation time.
  * @returns {boolean} True if the number is prime, false if the number is not prime.
  */
-function fermaTestBigBigR(p, checks = FERMAS_TEST_DEFAULT_CHECKS) {
+function fermaTestBigR(p, checks = FERMAS_TEST_DEFAULT_CHECKS) {
     const a = randomBig(FERMAS_TEST_MIN_RANDOM_NUMBER, p);   
 
     if(checks > 0) {
-        return modExpBig(a, p - BIG_ONE, p) !== BIG_ONE ? false  : fermaTestBigBigR(p, --checks);
+        return modExpBig(a, p - BIG_ONE, p) !== BIG_ONE ? false  : fermaTestBigR(p, --checks);
+
     }
     
     return true;
@@ -288,10 +561,16 @@ function gcdExBig(a, b) {
 }
 
 
+
+
+
+
+console.log(CommonFructionBig.arithmeticParse('1/2 + ((-1/2) + 1/18 + 1/19) + (1/13 + (-2/7))').strFormat);
+
+
+
+//console.log("(-12/-12+(-12/+3)*(-15/-4)".match( REGEXP_FOR_COMMONFRACTIONBIG_CLASS ) );
 //console.log(test(48, 23));
-
-
-
 //console.log('r', fermaTestBigBigR(21377n, 2));
 //console.log('d', fermaTestBig(21377n, 2));
 //console.log('e', eulerst(21377));
@@ -305,7 +584,7 @@ export {
     gcd, 
     eulerst, 
     randomBig, 
-    fermaTestBigBigR, 
+    fermaTestBigR, 
     fermaTestBig,
     gcdExBig
 };

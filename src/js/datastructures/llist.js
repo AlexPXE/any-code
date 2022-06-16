@@ -1,36 +1,43 @@
+class Node {
+    constructor(data) {
+        this.value = data;
+        this.next = null;
+        this.prev = null;
+    }
+}
 class Llist {
     constructor(...args) {
         let head = null;
         let tail = null;
-        this.cash = new WeakMap();
-
         this.length = 0;
+        
+        Object.defineProperties(this, {
+            head: {
+                get: () => head,
 
-        this.setHead = (node) => {            
-            if( node === null || (node instanceof Node) ) {
-                head = node;
-                return head;    
-            }   
+                set: node => {
+                    if( node === null || (node instanceof Node) ) {
+                        head = node;                        
+                    } else {
+                        throw new Error('Invalid node');
+                    }   
+                }                
+            },
 
-            throw new Error('Node is null');   
-        };
+            tail: {
+                get: () => tail,
 
-        this.setTail = node => {
-            if( node !== null || !(node instanceof Node) ) {
-                throw new Error('Not a node');                    
-            }
-            
-            tail = node;
-            return tail;
-        };
-
-        this.getHead = () => {
-            return head;
-        };
-
-        this.getTail = () => {
-            return tail;
-        };               
+                set: node => {                    
+                    if( node === null || (node instanceof Node) ) {
+                        tail = node;                        
+                    } else {
+                        throw new Error('Invalid node');                                           
+                    }
+                    
+                }
+            },               
+        });
+        
 
         if(args.length > 0) {
             this.push(...args);
@@ -38,19 +45,19 @@ class Llist {
     }
 
     *[Symbol.iterator]() {
-        let node = this.getHead();
+        let node = this.head;
         while(node !== null) {
             yield node.value;
             node = node.next;
-        }        
+        }
     }
 
-    swap(){
-
+    swap() {
+        throw new Error('Not implemented');
     }
 
-    delete(){
-
+    delete() {
+        throw new Error('Not implemented');
     }
 
     shift() {
@@ -58,15 +65,15 @@ class Llist {
         if(this.length == 0) {
             return null;
         } else {                  
-            let head = this.getHead();            
+            let {head} = this;
             const {next} = head;
             
             if(next) {                                                
                 next.prev = null;                
-                this.setHead(next);
+                this.head = next;
             } else {                                
-                this.setTail(null);
-                this.setHead(null);                
+                this.tail = null;
+                this.head = null;                
             }
             
             this.length--;
@@ -81,17 +88,17 @@ class Llist {
         }
 
         args.forEach((arg) => {            
-            let head = this.getHead();
+            let {head} = this;
 
             const node = new Node(arg);
 
             if (!head) {
-                this.setHead(node);
-                this.setTail(node);
+                this.head = node;
+                this.tail = node;
             } else {
                 node.next = head;
                 head.prev = node;
-                this.setHead(node);
+                this.head = node;
             }           
 
             ++this.length;
@@ -109,19 +116,18 @@ class Llist {
 
         args.forEach(arg => {     
 
-            let tail = this.getTail();      
+            let {tail} = this;
             const node = new Node(arg);
+            //console.log('push', arg);
             
             if (tail) {
                 tail.next = node;
                 node.prev = tail;
-                this.setTail(node);                
+                this.tail = node;                
             } else {
-                this.setHead(node);
-                this.setTail(node);
-            }
-            
-            this.cash
+                this.head = node;
+                this.tail = node;
+            }          
 
             ++this.length;
         });        
@@ -135,23 +141,24 @@ class Llist {
             return null;
         }
 
-        const tail = this.getTail();
+        const tail = this.tail;
         const {prev} = tail;
 
         if(prev) {
             prev.next = null;
-            this.setTail(prev);
+            this.tail = prev;
         } else {
-            this.setHead(null);
-            this.setTail(null);
+            this.head = null;
+            this.tail = null;
         }
 
+        //console.log('pop', tail.value);
         this.length--;
         return tail.value;
     }
 
     showList() {
-        let temp = this.getHead();
+        let {head:temp} = this;
         let arr = [];
 
         while(temp) {
@@ -163,7 +170,7 @@ class Llist {
     }
 
     showListRev() {
-        let temp = this.getTail();
+        let {tail:temp} = this;
         let arr = [];
 
         while(temp) {
@@ -174,6 +181,5 @@ class Llist {
         return arr;
     }    
 }
-
 
 export {Llist};

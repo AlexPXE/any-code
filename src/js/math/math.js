@@ -15,8 +15,9 @@ const BIG_ZERO = 0n;
 const BIG_ONE = 1n;
 const BIG_TWO = 2n;
 
-const FERMAS_TEST_DEFAULT_CHECKS = INT_ONE;
-const FERMAS_TEST_MIN_RANDOM_NUMBER = BIG_TWO;
+const FERMAS_TEST_DEFAULT_CHECKS = 2;
+const FERMAS_TEST_MIN_RANDOM_NUMBER = 2n;
+
 
 const REGEXP_FOR_COMMONFRACTIONBIG_CLASS = /(\()|(\))|((?<=\(|^)[+\-]?\d+\/[+\-]?\d+)|(\d+\/[+\-]?\d+)|([\*:]|(?<=\d|\))[+\-])/g;
 
@@ -24,8 +25,11 @@ const ERRORS = {
     negativeValue: 'only accepts positive numbers',
     numberType: 'only accepts type of "number"',
     bigIntType: 'only accepts type of "bigint"',
-    randomMiMax: 'min must be less than max',    
+    randomMinMax: 'min must be less than max',
+    lessThanOne: 'only accepts numbers greater than 1',
+    lessThanTwo: 'only accepts numbers greater than 2',
 };
+
 class Operators {
     constructor(operator = '', priority = 0, type = '', method = '') {
         this.name = operator;
@@ -143,8 +147,7 @@ class CommonFractionBig {
                         
                     } else {
                         denominator = value;
-                    }
-                    
+                    }                    
                 }
             },
 
@@ -308,6 +311,7 @@ class CommonFractionBig {
         }       
 
         const {numerator: bX, denominator: bY} = commFr;
+        // @ts-ignore
         const {numerator: aX, denominator: aY} = this;
 
         return new CommonFractionBig(`${aX * bX}/${aY * bY}`);
@@ -441,7 +445,7 @@ function absBig(n) {
  */
 function random(min, max) {
     if(min > max) {
-        throw new RangeError(`Function random() ${ERRORS.randomminMax}`);
+        throw new RangeError(`Function random() ${ERRORS.randomMinMax}`);
     }
 
     if(min < 0 || max < 0) {
@@ -650,19 +654,25 @@ function eulerstBig(n) {
  * @param {bigint} max Maximal value of the random number.
  * @returns {bigint} Random `bigint` number.
  * @throws {TypeError} If min or max are not `bigint`.
+ * @throws {RangeError} If `min` === `max`
  */
 
 function randomBig(min, max) {    
 
-    if(typeof max !== 'bigint' || max < BIG_ZERO) {        
-        throw new Error('Function randomBig() only accepts positive numbers of type bigint.');
+    if(typeof max !== 'bigint') {        
+        throw new TypeError('Function randomBig() only accepts bigint type.');
+    }
+
+    if(min === max || min > max || max < BIG_ZERO || min < BIG_ZERO) {
+        throw new RangeError('Function randomBig() min and max are equal or min is greater than max or one of them is negative.');
     }
     
     const tmp = (max - min).toString().match(/\d{1,3}/g);
     let result = '' + random(0, +tmp[0] - 1);
+    
 
     for(let i = 1; i < tmp.length; i++) {
-        result += '' + random(0, 10**(tmp[i].length) - 1);
+        result += '' + random(0, 10**(tmp[i].length) - 1); //10**3 === 1000, 1000 - 1 === 999
     }
 
     return BigInt(result) + min;
@@ -671,7 +681,7 @@ function randomBig(min, max) {
 
 /**
  * The fermaTestBig() calculates the Fermat's primality test of a number. Recursive version.
- * [a**(p-1) % p = 1 for all a < p.](https://en.wikipedia.org/wiki/Fermat_primality_test)
+ * [a**(p-1) % p == 1 for all a < p.](https://en.wikipedia.org/wiki/Fermat_primality_test)
  * If `p` or `cheks` is not positive, then returns incorrect result.
  * 
  * @param {bigint} p Estimated prime number.
@@ -696,7 +706,7 @@ function fermaTestBigR(p, checks = FERMAS_TEST_DEFAULT_CHECKS) {
 
 /**
  * The `fermaTestBig()` calculates the Fermat's primality test of a number. Loop version.
- * [a**(p-1) % p = 1 for all a < p.](https://en.wikipedia.org/wiki/Fermat_primality_test) * 
+ * [a**(p-1) % p == 1 for all a < p.](https://en.wikipedia.org/wiki/Fermat_primality_test) * 
  * 
  * @param {bigint} p Estimated prime number.
  * @param {number} [checks = FERMAS_TEST_DEFAULT_CHECKS] Quantity of checks. The more checks, the more accurate the result, but the longer the calculation time.
@@ -722,6 +732,10 @@ function fermaTestBig(p, checks = FERMAS_TEST_DEFAULT_CHECKS) {
         return false;
     }
 
+    if(p === BIG_TWO) {
+        return true;
+    }
+
     for(let i = 0; i < checks; i++) {
         
         const a = randomBig(FERMAS_TEST_MIN_RANDOM_NUMBER, p);        
@@ -737,7 +751,7 @@ function fermaTestBig(p, checks = FERMAS_TEST_DEFAULT_CHECKS) {
  * The gcdExBig() computes, in addition to the gcd, the coefficients `a` and `b` of the equation __a*x + b*y = gcd(x, y)__.
  * See [the Extended Euclidean algorithm](https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm) for more information.  
  * Only positive `bigint` are supported.
- * **BigInt only.**
+ * 
  * 
  * 
  * @param {bigint} a First number.
@@ -753,18 +767,49 @@ function gcdExBig(a, b) {
     return [t, s - q * t, g];    
 }
 
+/**
+ * The randomBits() returns a random bigint number with `bits` bits.
+ * 
+ * @param {number} bits Bit size of the random number.
+ * @returns {Array} Array that represents a set of random bits.
+ * @throws {RangeError} If `bits` is less than 1.
+ */
+function randomBits(bits = 1) {
+
+    if(bits < 1) {
+        throw new RangeError(`Function randomBits() ${ERRORS.lessThanOne}`);
+    }
+
+    let bitsArr = [1];
+    for(let i = 1; i < bits; i++) {
+        bitsArr.push(random(0, 1));
+    }
+
+    return bitsArr;
+}
 
 
-//console.log(CommonFractionBig.arithmeticParse('1/2 - (-5/6) + (1/2 - 2/11)').strFormat);
-//console.log(CommonFractionBig.arithmeticParse('1/2 - (-5/6)').strFormat);
-//console.log(CommonFractionBig.arithmeticParse('(1/2 - 1/2 + 0/2').strFormat);
-//console.log(CommonFractionBig.arithmeticParse('1/2 + (-5/6) : 2/8 - 5/7 + 2/3 * (-5/8 + 5/9)').reduce().strFormat);
-//console.log(CommonFractionBig.arithmeticParse('1/2 * (1/2 * (5/6 - 3/4 * (-2/9))) : 13/71 * (2/133 + 12/15) - 1/44 * 2/3').reduce().strFormat);
-//console.log("(-12/-12+(-12/+3)*(-15/-4)".match( REGEXP_FOR_COMMONFRACTIONBIG_CLASS ) );
+/**
+ * The randomPrime() returns a random prime `bigint` with `bits` size.
+ * Recursive version.
+ * 
+ * @param {number} bits bit size of the random prime number.
+ * @returns {bigint} Random prime number.
+ * @throws {RangeError} If `bits` is less than 2.
+ */
+function randomPrime(bits = 2) {
+    if(bits < 2) {
+        throw new RangeError(`Function randomPrime() ${ERRORS.lessThanTwo}`);
+    }
+
+    let prime = BigInt('0b' + randomBits(bits).join(''));
+
+    return fermaTestBig(prime) ? prime : randomPrime(bits);
+}
 
 
-
-export {         
+export {    
+    CommonFractionBig,   
     eulerst,     
     fastPowBig,          
     fermaTestBigR, 
@@ -776,5 +821,7 @@ export {
     modExpBig, 
     modExpBigR,
     randomBig, 
+    randomBits,
+    randomPrime,
     random, 
 };

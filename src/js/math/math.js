@@ -15,19 +15,19 @@ const BIG_ZERO = 0n;
 const BIG_ONE = 1n;
 const BIG_TWO = 2n;
 
-const FERMAS_TEST_DEFAULT_CHECKS = 2;
+const FERMAS_TEST_DEFAULT_CHECKS = 5;
 const FERMAS_TEST_MIN_RANDOM_NUMBER = 2n;
 
 
 const REGEXP_FOR_COMMONFRACTIONBIG_CLASS = /(\()|(\))|((?<=\(|^)[+\-]?\d+\/[+\-]?\d+)|(\d+\/[+\-]?\d+)|([\*:]|(?<=\d|\))[+\-])/g;
 
 const ERRORS = {
-    negativeValue: 'only accepts positive numbers',
-    numberType: 'only accepts type of "number"',
-    bigIntType: 'only accepts type of "bigint"',
-    randomMinMax: 'min must be less than max',
-    lessThanOne: 'only accepts numbers greater than 1',
-    lessThanTwo: 'only accepts numbers greater than 2',
+    negativeValue: 'only accepts positive numbers.',
+    numberType: 'only accepts type of "number".',
+    bigIntType: 'only accepts type of "bigint".',
+    randomMinMax: 'min must be less than max.',
+    lessThanOne: 'only accepts numbers greater than 1.',
+    lessThanTwo: 'only accepts numbers greater than 2.',
 };
 
 class Operators {
@@ -84,7 +84,7 @@ class CommonFractionBig {
         
         let numerator = 0n;
         let denominator = 1n;
-
+        //TODO: Refactor this with private fields
         Object.defineProperties(this, {
             
             numerator: {
@@ -799,7 +799,7 @@ function randomBits(bits = 1) {
  */
 function randomPrime(bits = 2) {
     if(bits < 2) {
-        throw new RangeError(`Function randomPrime() ${ERRORS.lessThanTwo}`);
+        throw new RangeError(`Function randomPrime() ${ERRORS.lessThanTwo} Param 'bits' === ${bits}`);
     }
 
     let prime = BigInt('0b' + randomBits(bits).join(''));

@@ -31,17 +31,20 @@ import {
     fermaTestBig,
     gcdExBig,
     gcd, 
+    gcdBig,
     lcm,
     lcmBig,
     modExpBig, 
     modExpBigR,
+    modulo,
     randomBig, 
     random, 
     randomBits,
-    randomPrime
+    randomPrimeBig
 } from '../math/math.js';
 
-const PRIME_NUMBERS_MIN_BIT_SIZE = 8;
+//???: CONST
+const PRIME_NUMBERS_MIN_BIT_SIZE = 64;
 const OPEN_EXPONENT_BIT_SIZE = 16;
 
 // @ts-ignore
@@ -58,6 +61,110 @@ const alphabet = [
     ',', ':', ';', '"', '\'', '\\', '{', '}', '[', ']', '(', ')', ' ', '\n', '\t', '\r', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
 ];
 
+
+
+
+//???: ObjectBigUint64
+class ObjectBigUint64 {
+    #buffer;    
+    #dataView;
+    #length;    
+    #litleEndian = false;
+
+    constructor(bufferLike) {
+        
+        try {
+            
+            if(bufferLike instanceof ArrayBuffer) {
+                const { byteLength } = bufferLike;
+
+                this.#buffer = new Uint8Array([
+                ...new Uint8Array( modulo(-byteLength, 8) ),
+                ...new Uint8Array(bufferLike)
+            ]).buffer;
+               
+            } else {                
+                this.#buffer = new ArrayBuffer(bufferLike * 8);
+            }            
+            
+        } catch(e) {
+            throw new TypeError('Invalid argument.');
+        }
+                
+        this.#dataView = new DataView(this.#buffer);
+        this.#length = this.#buffer.byteLength / 8;
+    }
+
+    *[Symbol.iterator]() {
+        for(let i = 0; i < this.#length; i++) {
+            yield this.getValue(i);
+        }
+    }    
+
+    getValue(index) {
+        if(index < 0 || index >= this.#length) {
+            throw new RangeError('Index out of range.');
+        }
+
+        return this.#dataView.getBigUint64(index * 8, this.#litleEndian);
+    }
+
+    setValue(index, value) {
+        if(index < 0 || index >= this.#length) {
+            throw new RangeError('Index out of range.');
+        }
+
+        this.#dataView.setBigUint64(index * 8, value, this.#litleEndian);
+    }
+
+    getUint8(index) {
+        if(index < 0 || index >= this.byteLength) {
+            throw new RangeError('Index out of range.');
+        }
+
+        return this.#dataView.getUint8(index);
+    }
+
+    get byteLength() {
+        return this.#buffer.byteLength;
+    }
+
+    get length() {
+        return this.#length;
+    }
+
+    get buffer() {
+        return this.#buffer;
+    }    
+
+    set litleEndian(value) {
+        this.#litleEndian = !!value;
+    }
+    
+    map(callback) {
+        const resultArray = [];
+
+        for(let i = 0; i < this.length; i++) {
+            resultArray.push(callback(this.getValue(i), i, this));
+        }
+
+        return resultArray;
+    }
+
+    filterUint8(callback) {
+        const resultArray = [];
+        const {byteLength} = this;
+
+        for(let i = 0; i < byteLength; i++) {
+
+            if( callback(this.getUint8(i), i, this) ) {
+                resultArray.push(this.getUint8(i));
+            }
+        }
+
+        return resultArray;
+    }
+}
 
 
 class ExtMap extends Map {
@@ -170,17 +277,15 @@ class ExtMap extends Map {
 class ExtMapMod extends ExtMap {   
 
     constructor(entries) {
-        super();
-
-        entries && this.fromEntries(entries);
+        super(entries);
     }
 
-    set(key, value, type) {
+    set(key, value, type = 'undefined') {
         if(!this.has(key)) {
 
             if(typeof key === 'object') {
                 throw new Error('Key can not be an object');
-            }            
+            }
 
             Object.defineProperties(this, {
                 [key]:{
@@ -209,10 +314,16 @@ class ExtMapMod extends ExtMap {
         entries.forEach( ([key, value]) => this.set(key, value, typeof value) );
         return this
     }
+
+    fromOwnFields(...fields) {
+        return new ExtMapMod( fields.map( field => [field, this[field]] ));
+    }
 }
 
 
 
+
+//???:keyGen
 class KeysGeneratorInterface {
     constructor() {
         if(this.constructor === KeysGeneratorInterface) {
@@ -258,7 +369,7 @@ class KeysGenerator extends KeysGeneratorInterface {
     generate(description = '') {
         const primePair = new Set();
         while(primePair.size < 2) {
-            primePair.add( randomPrime(this.#size) );        
+            primePair.add( randomPrimeBig(this.#size) );        
         }
         
         const [p1, p2] = primePair.values();        
@@ -268,30 +379,79 @@ class KeysGenerator extends KeysGeneratorInterface {
         let e;
 
          do {
-            e = randomPrime(phiSize > OPEN_EXPONENT_BIT_SIZE ? 
+            e = randomPrimeBig(phiSize > OPEN_EXPONENT_BIT_SIZE ? 
                 OPEN_EXPONENT_BIT_SIZE : 
-                OPEN_EXPONENT_BIT_SIZE - 1
+                phiSize - 1
             );
         } while (phi % e === 0n)           
 
-        const tmp = gcdExBig(phi, e)[1];       
+        const tmp = gcdExBig(e, phi)[0];               
         
         const keys = new ExtMapMod([
             ['description', description],
-            ['module', p1*p1],
+            ['module', p1 * p2],            
             ['publicExp', e],
             ['privateExp', tmp < 0n ? tmp + phi : tmp],
 
-        ]);        
+        ]);
+                
         return keys;
     }
 }
 
+//???: TextCrypto
+class TextCrypto {
+    #encoder = new TextEncoder();
+    #decoder = new TextDecoder();    
 
-const key128 = new KeysGenerator(128);
-const jsonString = key128.generate('test').stringify();
+    encrypt(data, keys) {
+        const { module, publicExp, description} = keys;               
 
-console.log(jsonString === new ExtMapMod().parse(jsonString).stringify());
+        return new ExtMapMod([
+            ['description', description],
+            ['encrypted', 
+                new ObjectBigUint64(this.#encoder.encode(data).buffer)
+                .map( value => modExpBig(value, publicExp, module) )
+            ]            
+        ]);
+    }
+    
+    decrypt(data, keys) {
+        const { encrypted, description } = data;
+        const { privateExp, module } = keys;
+
+        const decrypted = new ObjectBigUint64(encrypted.length);
+
+        encrypted.forEach( (value, index) => {
+            decrypted.setValue(index, modExpBig(value, privateExp, module));
+        });
+
+        return new ExtMapMod([
+            ['description', description],
+            ['decrypted', this.#decoder.decode(new Uint8Array(decrypted
+                .filterUint8(value => value !== 0)
+            ))]
+        ]);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

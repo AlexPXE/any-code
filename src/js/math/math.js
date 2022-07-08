@@ -15,7 +15,7 @@ const BIG_ZERO = 0n;
 const BIG_ONE = 1n;
 const BIG_TWO = 2n;
 
-const FERMAS_TEST_DEFAULT_CHECKS = 5;
+const FERMAS_TEST_DEFAULT_CHECKS = 10;
 const FERMAS_TEST_MIN_RANDOM_NUMBER = 2n;
 
 
@@ -370,7 +370,7 @@ class CommonFractionBig {
     reduce() {       
 
         const {numerator, denominator} = this;
-        const gcd = gcdBig(absBig(numerator), absBig(denominator));        
+        const gcd = gcdBig( absBig(numerator), absBig(denominator) );        
         
         return new CommonFractionBig(`${numerator / gcd}/${denominator / gcd}`);
     }
@@ -392,6 +392,8 @@ class CommonFractionBig {
  * @param {number} a 
  * @param {number} b 
  * @returns {number} LCM of `a` and `b`.
+ * @throws {Error} If `a` or `b` is not a number.
+ * @throws {Error} If `a` or `b` is not an positive.
  */
 function lcm(a, b) {    
 
@@ -428,6 +430,12 @@ function lcmBig(a, b) {
     return (a * b) / gcdBig(a, b);
 }
 
+/**
+ * absBig(n) - Calculate the absolute value of a number.
+ * 
+ * @param {bigint} n 
+ * @returns {bigint}
+ */
 function absBig(n) {
     return n < BIG_ZERO ? -n : n;
 }
@@ -458,10 +466,11 @@ function random(min, max) {
 /**
  * Fast pow algorithm.
  * Works with [BigInt only](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt).
+ *  
  * 
  * 
- * @param {bigint} n Number thet will be raised to the power. BigInt only.
- * @param {bigint} p Exponent.Default value is BIG_TWO. BigInt only. 
+ * @param {bigint} n Number thet will be raised to the power. `bigint` only.
+ * @param {bigint} p Exponent. Default `p === 2n`. Must be positive `bigint`.
  * @returns {bigint} Result.
  * @throws {TypeError} If `p < 0`.
  * @throws {RangeError} If `p < 0` or `n < 0`.
@@ -473,7 +482,7 @@ function random(min, max) {
         throw new TypeError(`Function fastPowBig() ${ERRORS.bigIntType}`);
     }
 
-    if(n < 0 || p < 0) {
+    if(p < 0) {
         throw new RangeError(`Function fastPowBig() ${ERRORS.negativeValue}`);
     }
 
@@ -482,9 +491,7 @@ function random(min, max) {
     }
     
     let tmp = BIG_ONE;
-    let x = n;
-        // if p is negative, then make it positive and remember the sign 
-    const sign = (p < BIG_ZERO) && !!( p = (-p) );    
+    let x = n;   
 
        //if pow equals 0 or 1, then skip the loop
     while(p > BIG_ONE) {
@@ -498,9 +505,8 @@ function random(min, max) {
     }
 
     tmp *= x;
-        //if p == 0, then return 1, else if sign is true (negative exponent), then return 1/tmp.
-        //else return tmp
-    return sign ? BIG_ONE / tmp : tmp;
+
+    return tmp;
 }
 
 /**
@@ -516,7 +522,7 @@ function random(min, max) {
  */
 function modExpBig(a, p, m) {   //modExpBig(12n, 12n, 13n)
     
-    if(typeof a !== 'bigint' && typeof p !== 'bigint' && typeof m !== 'bigint') {        
+    if(typeof a !== 'bigint' || typeof p !== 'bigint' || typeof m !== 'bigint') {        
         throw new TypeError(`Function modExpBig() ${ERRORS.bigIntType}`);
     }
 
@@ -663,7 +669,7 @@ function randomBig(min, max) {
         throw new TypeError('Function randomBig() only accepts bigint type.');
     }
 
-    if(min === max || min > max || max < BIG_ZERO || min < BIG_ZERO) {
+    if(min >= max || max < BIG_ZERO || min < BIG_ZERO) {
         throw new RangeError('Function randomBig() min and max are equal or min is greater than max or one of them is negative.');
     }
     
@@ -738,7 +744,8 @@ function fermaTestBig(p, checks = FERMAS_TEST_DEFAULT_CHECKS) {
 
     for(let i = 0; i < checks; i++) {
         
-        const a = randomBig(FERMAS_TEST_MIN_RANDOM_NUMBER, p);        
+        const a = randomBig(FERMAS_TEST_MIN_RANDOM_NUMBER, p);  
+
         if(modExpBig(a, p - BIG_ONE, p) !== BIG_ONE) {
             return false;
         }
@@ -774,15 +781,15 @@ function gcdExBig(a, b) {
  * @returns {Array} Array that represents a set of random bits.
  * @throws {RangeError} If `bits` is less than 1.
  */
-function randomBits(bits = 1) {
+function randomBits(bits = 1) { //???: Check if it works correctly.
 
     if(bits < 1) {
         throw new RangeError(`Function randomBits() ${ERRORS.lessThanOne}`);
     }
 
-    let bitsArr = [1];
-    for(let i = 1; i < bits; i++) {
-        bitsArr.push(random(0, 1));
+    let bitsArr = [];
+    for(let i = 0; i < bits; i++) {
+        bitsArr.push( random(0, 1) );
     }
 
     return bitsArr;
@@ -790,23 +797,29 @@ function randomBits(bits = 1) {
 
 
 /**
- * The randomPrime() returns a random prime `bigint` with `bits` size.
+ * The randomPrimeBig() returns a random prime `bigint` with `bits` size.
  * Recursive version.
  * 
  * @param {number} bits bit size of the random prime number.
  * @returns {bigint} Random prime number.
  * @throws {RangeError} If `bits` is less than 2.
  */
-function randomPrime(bits = 2) {
+function randomPrimeBig(bits = 2) {
     if(bits < 2) {
-        throw new RangeError(`Function randomPrime() ${ERRORS.lessThanTwo} Param 'bits' === ${bits}`);
+        throw new RangeError(`Function randomPrimeBig() ${ERRORS.lessThanTwo} Param 'bits' === ${bits}`);
     }
 
-    let prime = BigInt('0b' + randomBits(bits).join(''));
+    let prime = BigInt('0b1' + randomBits(bits - 1).join('')); //???: Check if it works correctly.
 
-    return fermaTestBig(prime) ? prime : randomPrime(bits);
+    return fermaTestBig(prime) ? prime : randomPrimeBig(bits);
 }
 
+//TODO: Add documentation.
+function modulo(p, q) {    
+    let result = p % Math.abs(q);
+    return result < 0 ? result + q : result;
+
+}
 
 export {    
     CommonFractionBig,   
@@ -815,13 +828,15 @@ export {
     fermaTestBigR, 
     fermaTestBig,
     gcdExBig,
-    gcd, 
+    gcd,
+    gcdBig,
     lcm,
     lcmBig,
     modExpBig, 
     modExpBigR,
+    modulo,
     randomBig, 
     randomBits,
-    randomPrime,
+    randomPrimeBig,
     random, 
 };

@@ -463,9 +463,3 @@ class TextCrypto {
 
 
 
-
-
-
-
-
-

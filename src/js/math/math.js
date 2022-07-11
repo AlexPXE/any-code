@@ -65,8 +65,6 @@ const checkOperator = (function () {
     };
 })();
 
-
-
 class CommonFractionBig {
 
     static ERRORS = {
@@ -87,49 +85,39 @@ class CommonFractionBig {
         //TODO: Refactor this with private fields
         Object.defineProperties(this, {
             
-            numerator: {
+            numerator: {                
                 /**
-                 * Getter for the numerator.
-                 * 
-                 * @name numerator
-                 * @returns {bigint}              
-                 */
+                * Getter and setter for the numerator.`bigint`
+                * @memberof module:math~CommonFractionBig# 
+                * @name numerator
+                * @type {bigint}
+                * @throws {TypeError} If the numerator is not a `bigint`.
+                */
                 get() {
                     return numerator;
                 },
-                /**
-                 * Setter for the numerator.
-                 * 
-                 * @name numerator
-                 * @param {bigint} value The numerator.
-                 * @thows {TypeError} If the numerator is not a `bigint`.
-                 */
+                
                 set(value) {
                     if(typeof value !== 'bigint') {
                         throw new TypeError(CommonFractionBig.ERRORS['numtype']);
-                    }
-                    
+                    }                    
                     numerator = value;                
                 }
-            },
+            },    
 
-            denominator:{
-                /**
-                 * Getter for the denominator.
-                 * @name denominator
-                 * 
-                 * @returns {bigint} The denominator.
-                 */
+            
+            denominator:{                
+            /**
+             * Getter and setter for the denominator.`bigint`
+             * @memberof module:math~CommonFractionBig# 
+             * @name denominator
+             * @type {bigint}
+             * @throws {TypeError} If the denominator is not a `bigint`.
+             */
                 get() {
                     return denominator;
-                },
-                /**
-                 * Setter for the denominator.
-                 * @name denominator                  
-                 *  
-                 * @param {bigint} value The denominator of the common fraction.
-                 * @throws {TypeError} If the denominator is not a `bigint`.
-                 */
+                }, 
+
                 set(value) {
                     if(typeof value !== 'bigint') {
                         throw new TypeError(CommonFractionBig.ERRORS['denomtype']);
@@ -149,24 +137,19 @@ class CommonFractionBig {
                         denominator = value;
                     }                    
                 }
-            },
-
-            strFormat: {
-                /**
-                 * Get the string representation of the common fraction.
-                 * @name strFormat
-                 * 
-                 * @returns {string} String representation of the common fraction. Example: "1/2", "3/4", "5/6", etc.
-                 */
+            },            
+           
+            strFormat: {                
+               /**
+               * Getter and setter for the string representation of the common fraction. Example: "1/2", "3/4", "5/6", etc.
+               * @memberof module:math~CommonFractionBig#
+               * @name strFormat
+               * @type {string}
+               * @throws {SyntaxError} If the string is not in the format of "numerator/denominator". Example: "1/2", "3/4", "5/6", etc.
+               */
                 get() {
                     return `${numerator}/${denominator}`;
-                },
-                /**
-                 * Set the string representation of the common fraction.
-                 * 
-                 * @param {string} str String representation of the common fraction. Example: "1/2", "3/4", "5/6", etc.
-                 * @throws {SyntaxError} If the string is not in the format of "numerator/denominator". Example: "1/2", "3/4", "5/6", etc.
-                 */
+                },                
                 set(str) {
                     if(!/^-?\d+\/-?\d+$/.test(str)) {
                         throw new SyntaxError(CommonFractionBig.ERRORS['strformat']);    
@@ -222,24 +205,20 @@ class CommonFractionBig {
 
         const result = str.replace(/\s+/g, '')
             .match(REGEXP_FOR_COMMONFRACTIONBIG_CLASS);
-            
-            
-
 
         for(let value of result) {            
             const operator = checkOperator(value);
             
             switch(operator.type) {
-                case 'up':
+                case 'up': // '('
                     level+=operator.priority;
                     break;
 
-                case 'down':
+                case 'down': // ')'
                     level-=operator.priority;
                     break;
 
-                case 'operator':                 
-                  
+                case 'operator':   
                   const curroperator = operator.methPriority(level);
                   const currpri = curroperator.priority;
 
@@ -252,16 +231,14 @@ class CommonFractionBig {
                         const y = stack.pop();
                         const op = stack.pop();
                         const x = stack.pop();
-                        stack.push(x[op.method](y));
-                        
+                        stack.push(x[op.method](y));                        
                   }                  
                   
                   stack.push(curroperator);
                   break;  
                     
                 default:                    
-                    stack.push(new CommonFractionBig(value));
-                   
+                    stack.push(new CommonFractionBig(value));                   
             }
         }        
 
@@ -814,7 +791,13 @@ function randomPrimeBig(bits = 2) {
     return fermaTestBig(prime) ? prime : randomPrimeBig(bits);
 }
 
-//TODO: Add documentation.
+/**
+ * Returns the remainder of a division (`p % q`). Works correctly with both positive and negative numbers.
+ * 
+ * @param {*} p Dividend.
+ * @param {*} q Divisor.
+ * @returns {*} Remainder of the division.
+ */
 function modulo(p, q) {    
     let result = p % Math.abs(q);
     return result < 0 ? result + q : result;

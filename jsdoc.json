@@ -12,7 +12,7 @@
         "dictionaries": ["jsdoc","closure"]
     },    
     "templates": {
-        "cleverLinks": true,
+        "cleverLinks": false,
         "monospaceLinks": true,
         "default": {
             "useLongnameInNav": true            

@@ -442,8 +442,6 @@ class ExtMapMod extends ExtMap {
     }
 }
 
-
-
 /**
  * Callback function for [`ObjectBigUint64.prototype.map(callback)` method]{@link module:arrayslike~ObjectBigUint64#map} 
  * 

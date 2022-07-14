@@ -10,8 +10,8 @@ import { ObjectBigUint64 } from '../datastructures/arrayslike.js';
 
 
 /**
- * The crypto module provides tools for encryption and decryption.
- * @module crypto
+ * The cryptos module provides tools for encryption and decryption.
+ * @module cryptos
  */
 
 //???: CONST
@@ -69,7 +69,7 @@ class RSAKeys {
 
     /**
      * Private *`#getKey()`* method creates a new object from the *`RSAKeys`* instance properties passed to it.
-     * @function module:crypto~RSAKeys~getKey
+     * @function module:cryptos~RSAKeys~getKey
      * @param  {...string} props Properties to get.
      * @returns {object} Object with the properties passed to the method.     
      */
@@ -87,7 +87,7 @@ class RSAKeys {
 
     /**
      * Private *`#generate()`*  method generates keys based on the [RSA algorithm.](https://en.wikipedia.org/wiki/RSA_(cryptosystem)) 
-     * @function module:crypto~RSAKeys~generate
+     * @function module:cryptos~RSAKeys~generate
      * 
      */
      #generate() {

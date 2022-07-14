@@ -195,7 +195,8 @@ class MaxBinHeap {
      * Returns the left child index of the element at the given index of the parent element.
      * 
      * @param {number} index index of elemet
-     * @returns Left child index or null if index is out of bounds.
+     * @returns {(null|number)} left child indexLeft child index or null if index is out of bounds.
+     * 
      */
     getLeftChild(index) {
         const left = index * 2 + 1;

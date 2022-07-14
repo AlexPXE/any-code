@@ -1,45 +1,8 @@
-"use strict";
-
-import {     
-    gcdExBig,    
-    modExpBig,     
-    modulo,    
-    randomPrimeBig
-} from '../math/math.js';
+import {modulo} from '../math/math.js';
 
 /**
- * The crypto module provides tools for encryption and decryption.
- * @module crypto
+ * @module arrayslike
  */
-
-//???: CONST
-/** 
- * Defaults bitsize for RSA prime numbers.
- * @constant
- * @type {number}
- * @default
-*/
-
-const PRIME_NUMBERS_MIN_BIT_SIZE = 64;
-/** 
- * Defaults bitsize for RSA public exponent.
- * @constant
- * @type {number}
- * @default
-*/
-const OPEN_EXPONENT_BIT_SIZE = 16;
-
-const alphabet = [
-    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 
-    'а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 
-    'щ', 'ь', 'ы', 'ъ', 'э', 'ю', 'я','А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 
-    'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ь', 'Ы', 'Ъ', 'Э', 'Ю', 'Я','=', '+', '-', '*', '/', '%', '^', '&', '|', '!', '?', '<', '>', '.', 
-    ',', ':', ';', '"', '\'', '\\', '{', '}', '[', ']', '(', ')', ' ', '\n', '\t', '\r', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-];
-
-
-//???: ObjectBigUint64
 
 class ObjectBigUint64 {
 
@@ -189,8 +152,8 @@ class ObjectBigUint64 {
     /**
      * Calls a defined callback function on each BigUint64 element of an ***`ArrayBuffer`***, and returns an array that contains the results.
      * 
-     * @param {mapUint64Callback} callback `mapUint64Callback(value, index, context)`
-     * @returns {any[]}} 
+     * @param {mapUint64Callback} callback [`mapUint64Callback(value, index, context)`]{@link module:arrayslike~mapUint64Callback}
+     * @returns {any[]} 
      */
     map(callback) {
         const resultArray = [];
@@ -222,6 +185,8 @@ class ObjectBigUint64 {
         return resultArray;
     }
 }
+
+
 
 class ExtMap extends Map {
     #propsCache = new Set();
@@ -442,7 +407,7 @@ class ExtMapMod extends ExtMap {
      * @returns {this} Context of the ***`setProp()`*** call.
      * @throws {TypeError} If the type of the value is not the same as the type of the passed `type`.
      * @throws {TypeError} If the key is not a string or number.
-     * @tutorial ExtMapModSet
+     * @tutorial ExtMapModSetProp
      */
     setProp(key, value, type = typeof value) {
         if(!this.hasOwnProp(key)) {
@@ -477,176 +442,18 @@ class ExtMapMod extends ExtMap {
     }
 }
 
-
-//???:keyGen
-class KeysGeneratorInterface {
-    constructor() {
-        if(this.constructor === KeysGeneratorInterface) {
-            throw new Error(`Cannot construct KeysGeneratorInterface instances directly!`);
-        }        
-    }
-
-    get size() {
-        throw new Error(`Not implemented!`);
-    }
-
-    set size(size) {
-        throw new Error(`Not implemented!`);
-    }
-
-    generate() {
-        throw new Error(`Not implemented!`);
-    }
-}
-
-class KeysGenerator extends KeysGeneratorInterface {
-    
-    #size;
-    /**
-     * KeyGenerator class implements the ***`KeysGeneratorInterface`*** class. Keys generetion is based on the [RSA algorithm](https://en.wikipedia.org/wiki/RSA_(cryptosystem))
-     * This is a simple implementation of the RSA algorithm and it is intended for demonstration purposes only and is not intended for serious use.  
-     * 
-     * @param {number} [size = PRIME_NUMBERS_MIN_BIT_SIZE] bit size of prime numbers. 
-     */
-    constructor(size = PRIME_NUMBERS_MIN_BIT_SIZE) {
-        super();
-
-        this.size = size;
-    }   
-
-    /**
-     * ***Getter*** for the bit size of prime numbers. ***Type: `number`***.
-     * 
-     */
-    get size() {
-        return this.#size;
-    }
-    
-    /**
-     * ***Setter*** for the bit size of prime numbers. ***Type: `number`***.
-     */
-    set size(size) {
-        if(size < PRIME_NUMBERS_MIN_BIT_SIZE) {
-            this.#size = PRIME_NUMBERS_MIN_BIT_SIZE;
-        } else {
-            this.#size = size;
-        }        
-    }
-
-    /**
-     * ***generate()*** method generates keys based on the [RSA algorithm.](https://en.wikipedia.org/wiki/RSA_(cryptosystem))
-     * 
-     * @param {string} [description = ''] description of the keys.
-     * @returns {ExtMapMod} ***`ExtMapMod`*** object with generated keys.
-     */
-    generate(description = '') {
-        const primePair = new Set();
-        while(primePair.size < 2) {
-            primePair.add( randomPrimeBig(this.#size) );        
-        }
-                    //Prime numbers
-        const [p1, p2] = primePair.values();        
-        const phi = (p1 - 1n) * (p2 - 1n);  //Euler's totient function https://en.wikipedia.org/wiki/Euler%27s_totient_function
-        const phiSize = phi.toString(2).length; //Size of the phi in bits 
-        
-        let e;
-
-         do {       //Bit size of the open exponent should be less than the bit size of the phi.            
-            e = randomPrimeBig(phiSize > OPEN_EXPONENT_BIT_SIZE ? 
-                OPEN_EXPONENT_BIT_SIZE : 
-                phiSize - 1
-            );
-        } while (phi % e === 0n)           
-                    //Find the private exponent using the extended Euclidean algorithm https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
-        const tmp = gcdExBig(e, phi)[0];               
-        
-        const keys = new ExtMapMod([
-            ['description', description],
-            ['module', p1 * p2],            
-            ['publicExp', e],
-            ['privateExp', tmp < 0n ? tmp + phi : tmp], //if private exponent is negative, add phi to it
-
-        ]);
-                
-        return keys;
-    }
-}
-
-//???: TextCrypto
-class TextCrypto {
-    #encoder = new TextEncoder();
-    #decoder = new TextDecoder();    
-    
-    /**
-     * ***TextCrypto class*** includes methods for encryption and decryption of text using the [RSA algorithm.](https://en.wikipedia.org/wiki/RSA_(cryptosystem))
-     * It is intended for demonstration purposes only and is not intended for serious use.
-     */
-    constructor() {        
-    }
-    
-    /**
-     * 
-     * @param {string} data String to encrypt.
-     * @param {{module: bigint, publicExp: bigint, description: string}} keys Keys to use for encryption.
-     * @returns {ExtMapMod} ***`ExtMapMod`*** object with encrypted data:  
-     * ```JavaScript
-     * 'ExtMapMod': {
-     *    description: 'string type',
-     *    encrypted: 'bigint array with 64-bit chunks'
-     * }
-     * ```
-     */
-    encrypt(data, { module, publicExp, description }) {
-
-        return new ExtMapMod([
-            ['description', description],
-            ['encrypted', 
-                new ObjectBigUint64(this.#encoder.encode(data).buffer)
-                .map( value => modExpBig(value, publicExp, module) )
-            ]            
-        ]);
-    }
-    
-    /**
-     * decrypt() method decrypts the encrypted data.
-     * @param {{encrypted: bigint[], description: string}} data 
-     * @param {{privateExp: bigint, module: bigint}} keys Keys to use for decryption.
-     * @returns {ExtMapMod} ***`ExtMapMod`*** object with decrypted data:  
-     * ```JavaScript
-     * {
-     *   description: 'string type', 
-     *   decrypted: 'string type'
-     * }
-     * ```
-     */
-    decrypt({ encrypted, description }, { privateExp, module }) {
-
-        const decrypted = new ObjectBigUint64(encrypted.length);
-
-        encrypted.forEach( (value, index) => {
-            decrypted.setValue(index, modExpBig(value, privateExp, module));
-        });
-
-        return new ExtMapMod([
-            ['description', description],
-            ['decrypted', this.#decoder.decode(new Uint8Array(decrypted
-                .filterUint8(value => value !== 0)
-            ))]
-        ]);
-    }
-}
-
 /**
- * Callback function for [`ObjectBigUint64.prototype.map(callback)` method]{@link module:crypto~ObjectBigUint64#map}
+ * Callback function for [`ObjectBigUint64.prototype.map(callback)` method]{@link module:arrayslike~ObjectBigUint64#map} 
  * 
  * @callback mapUint64Callback
  * @param {bigint} value Uint64 value.
  * @param {number} index Index of value in array.
  * @param {ObjectBigUint64} context  
- * @returns {*} value of the callback.
+ * @returns {any} value of the callback. * 
+ */
 
 /**
- * Callback function for [`ObjectBigUint64.prototype.filterUint8(callback)` method]{@link module:crypto~ObjectBigUint64#filterUint8}
+ * Callback function for [`ObjectBigUint64.prototype.filterUint8(callback)` method]{@link module:arrayslike~ObjectBigUint64#filterUint8}
  * 
  * @callback filterUint8Callback
  * @param {number} value Unsigned 8-bit integer
@@ -655,36 +462,15 @@ class TextCrypto {
  * @returns {boolean}
  */
 
+
 /**
- * Callback function for [`ExtMap.prototype.filter(callback)` method]{@link module:crypto~ExtMap#filter}
+ * Callback function for [`ExtMap.prototype.filter(callback)` method]{@link module:arrayslike~ExtMap#filter}
  * @callback filterCallback
  * @param {(number | string)} key Key of the entry.
- * @param {*} value Value of the entry.
+ * @param {any} value Value of the entry.
  * @param {ExtMap} context Context of the filter method call.
  * 
  */
 
 
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export { ExtMap, ExtMapMod, ObjectBigUint64 };

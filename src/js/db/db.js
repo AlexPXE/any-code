@@ -35,19 +35,14 @@ class DbTableInterface {
 
 
 class DbTable extends DbTableInterface {
-    #columns;
-    #table = [];
+    #table = new Map();
     #lastId = 0;
-    constructor(...columns) {
-        super();
+    #columns;    
+    #rowFactory;
+    constructor(columns) { 
+        super();        
 
-        columns.forEach(name => {
-            if(!name || typeof name !== 'string') {
-                throw new Error('Column name must be a string.');
-            }
-        });
-
-        this.#columns = new Set(columns).add('id');
+        this.#columns = new Map( Object.entries(columns) ).set('id', 'number');
     }    
 
     static stringify(table) {
@@ -57,20 +52,27 @@ class DbTable extends DbTableInterface {
         }
         
         return JSON.stringify({
-            columns: [...table.#columns],
-            table: table.#table,
+            columns: Object.fromEntries( table.#columns.entries() ),
+            table: table.#table.entries(),
             lastId: table.#lastId
         });
     }
 
     static parse(str) {
         const {columns, table, lastId} = JSON.parse(str);
-        const tableInst = new DbTable(...columns);
+        const tableInst = new DbTable(columns);
 
-        table.#table = table;
+        table.#table = new Map(table);
         table.#lastId = lastId;
         
         return tableInst;
+    }
+
+    #chekPropType(prop, value) {
+        if(!(typeof value !== this.#columns.get(prop))) {
+            throw new TypeError('Invalid type.');
+        }        
+        return value;
     }
     
     getColumns() {
@@ -79,6 +81,15 @@ class DbTable extends DbTableInterface {
 
     getElement(id) {
         
+    }
+
+    addElement(...values) {
+        const row = Object.create(null);
+
+        this.#columns.forEach((type, prop) => {
+            row[prop] = this.#chekPropType(prop, values[prop]);
+        });
+
     }
 
     [Symbol.toPrimitive]() {
@@ -129,3 +140,5 @@ class DbInterface {
     }        
 }
 
+
+ 

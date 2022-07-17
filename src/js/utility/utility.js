@@ -8,7 +8,7 @@
  */
 
 
-const TYPE_HANDLERS = [
+const DEFAULT_TYPE_HANDLERS = [
     [
         'Map', 
         value => [...value], 
@@ -36,38 +36,47 @@ const TYPE_HANDLERS = [
     }
 };
 
-const customJSON = new function() {
+const customJSON = new function(typeHandlers = DEFAULT_TYPE_HANDLERS) {   
     
+    if(this.constructor.instance) {
+        return this.constructor.instance;
+    }
+
+    const instance = this;
+
+    Object.defineProperty(this.constructor, 'instance', {
+        get() {
+            return instance;
+        }
+    });
+
 
     function ValueWrapp(sType, value) { /*Wrapper for the value being encoded*/
         this.JSONdecodeType = sType;
         this.JSONdecodeValue = value;
     }
-    
-    function ValueConverter(arr) { 
-        
-        const handlers = arr.reduce((acc, [name, e, d]) => acc.set(name, {e, d}), new Map());
+     
+    const handlers = new Map();    
 
-        this.convert = value => {
-            const type = value?.constructor?.name;
+    const convert = value => {
+        const type = value?.constructor?.name;
             
-            if( handlers.has(type) ) {                
-                return new ValueWrapp(type, handlers.get(type).e(value));
-            }
-
-            return  value;
-        }        
-
-        this.toOriginal = value => {
-            if(value?.JSONdecodeType) {
-                return handlers.get(value.JSONdecodeType).d(value.JSONdecodeValue);
-            }
-
-            return value;
+        if( handlers.has(type) ) {                
+            return new ValueWrapp(type, handlers.get(type).e(value));
         }
-    }
-   
-    let {convert, toOriginal} = new ValueConverter(TYPE_HANDLERS); /*Processed types (class construtors names) and handlers*/
+
+        return  value;
+    }        
+
+    const toOriginal = value => {
+        if(value?.JSONdecodeType) {
+            return handlers.get(value.JSONdecodeType).d(value.JSONdecodeValue);
+        }
+
+        return value;
+    };
+
+
 
     /**
      * Encode method.
@@ -136,8 +145,50 @@ const customJSON = new function() {
         }
     })();    
     
-};
 
+    this.addHandlers = arr => {
+        arr.reduce((acc, [name, e, d]) => acc.set(name, {e, d}), handlers);        
+        return this;
+    }
+
+    this.removeAll = () => {
+        handlers.clear();
+        return this;
+    }
+
+    this.removeByName = (...typeName) => { /*remove handler by name*/
+        typeName.forEach(name => handlers.delete(name))
+        return this;
+    }
+
+    this.newHandlers = arr => { /*remove all and add new handlers */
+        handlers.clear();
+        this.addHandlers(arr);
+
+        return this;
+    };
+
+    this.replaceHandler = ({n, e, d}) => {
+        
+        const h = handlers.get(n);
+
+        if(h) {
+            (typeof e === 'function') && (h.e = e);
+            (typeof d === 'function') && (h.d = d);
+        }
+
+        return this;        
+    };
+
+    this.getTypeNames = () => [...handlers.keys()];
+
+    this.hasType = typeStr => handlers.has(typeStr);    
+
+    this.hasVlueType = value => handlers.has(value?.constructor?.name)
+
+
+    this.addHandlers(typeHandlers);   
+};
 
 export {customJSON, isVoid};
 

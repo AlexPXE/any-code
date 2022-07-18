@@ -21,8 +21,8 @@ import { ObjectBigUint64 } from '../datastructures/arrayslike.js';
  * @type {number}
  * @default
 */
-
 const PRIME_NUMBERS_MIN_BIT_SIZE = 64;
+
 /** 
  * Defaults bitsize for RSA public exponent.
  * @constant 

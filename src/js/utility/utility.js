@@ -7,8 +7,6 @@
  * @module utility
  */
 
-
-
 /**
  * Array of type handlers.
  * @typedef {array} TypeHandler
@@ -26,8 +24,6 @@
  *    value => new Date(value);
  * ``` 
  */
-
-
 
 /**
  * Array of default type handlers.
@@ -54,6 +50,14 @@ const DEFAULT_TYPE_HANDLERS = [
 ];
 
 /**
+ * [CustomJSON instance.]{@link module:utility~CustomJSON}
+ * @type {CustomJSON}
+ * @static
+ */
+ const customJSON = new CustomJSON();
+
+
+/**
  * function isVoid()  Check if value is `undefined` or `null` or `NaN` or `Infinity` or `-Infinity`. If so, return `true`.
  * @function isVoid
  * @param {any} value  Value to check.
@@ -68,23 +72,20 @@ const DEFAULT_TYPE_HANDLERS = [
     }
 };
 
-
 /**
  * @class 
  * This singleton class uses the JSON.stringify and JSON.parse functions and adds 
  * the ability to parse non-standard types by converting them to an object of the form `{ JSONdecodeType: 'string', JSONdecodeValue: any }`. 
  * 
  * @prop {CustomJSON} instance - Getter for the singleton instance.
- * @param {Array<TypeHandler>} [typeHandlers = DEFAULT_TYPE_HANDLERS] Array with type handlers functions and type names {@link module:utility~TypeHandler TypeHandler}
+ * @param {Array<TypeHandler>} [typeHandlers = DEFAULT_TYPE_HANDLERS] Array with type handlers functions and type names. {@link module:utility~TypeHandler TypeHandler}
  * @returns {CustomJSON} Instance of the class.
  */
-function CustomJSON(typeHandlers = DEFAULT_TYPE_HANDLERS) {   
-    
+function CustomJSON(typeHandlers = DEFAULT_TYPE_HANDLERS) {    
 
     if(this.constructor.instance) {
         return this.constructor.instance;
     }
-
     
     const instance = this;
 
@@ -340,13 +341,6 @@ function CustomJSON(typeHandlers = DEFAULT_TYPE_HANDLERS) {
     this.addHandlers(typeHandlers);   
 }
 
-
-/**
- * CustomJSON instance.
- * @type {CustomJSON}
- * @static
- */
-const customJSON = new CustomJSON();
 
 
 export {

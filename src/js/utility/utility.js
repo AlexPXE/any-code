@@ -1,5 +1,3 @@
-
-
 'use strict';
 
 /**
@@ -337,6 +335,11 @@ function CustomJSON(typeHandlers = DEFAULT_TYPE_HANDLERS) {
      */
     this.hasValueType = value => handlers.has(value?.constructor?.name);
 
+    /**
+     * The resetDefaults() method removes all handlers and sets default handlers.
+     * @returns {CustomJSON} This instance of the class.
+     */
+    this.resetDefaults = () => this.newHandlers(typeHandlers);
     
     this.addHandlers(typeHandlers);   
 }

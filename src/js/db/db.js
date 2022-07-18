@@ -35,38 +35,26 @@ class DbTableInterface {
 
 
 class DbTable extends DbTableInterface {
+    
+    #columns = new Map();    
     #table = new Map();
+    #recycleBin = new Set();
+    #freeID = new Set();    
     #lastId = 0;
-    #columns;    
+    
     #rowFactory;
+
     constructor(columns) { 
         super();        
 
         this.#columns = new Map( Object.entries(columns) ).set('id', 'number');
-    }    
-
-    static stringify(table) {
-
-        if(!(table instanceof this)) {
-            throw new Error('Invalid table.');
-        }
-        
-        return JSON.stringify({
-            columns: Object.fromEntries( table.#columns.entries() ),
-            table: table.#table.entries(),
-            lastId: table.#lastId
-        });
     }
 
-    static parse(str) {
-        const {columns, table, lastId} = JSON.parse(str);
-        const tableInst = new DbTable(columns);
-
-        table.#table = new Map(table);
-        table.#lastId = lastId;
-        
-        return tableInst;
+    #validateValue(cName, value) {
+        return this.#columns.get(cName) === value?.constructor?.name;
     }
+    
+    
 
     #chekPropType(prop, value) {
         if(!(typeof value !== this.#columns.get(prop))) {

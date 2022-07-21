@@ -344,6 +344,17 @@ function CustomJSON(typeHandlers = DEFAULT_TYPE_HANDLERS) {
     this.addHandlers(typeHandlers);   
 }
 
+/**
+ * The swap() function swaps two elements of the given array.
+ * @param {any[]} arr Array to swap.
+ * @param {number} aI Index of the first element.
+ * @param {number} bI Index of the second element.
+ * @returns {array} Array with the swapped elements.
+ */
+const swap = (arr, aI, bI) => {
+    [arr[aI], arr[bI]] = [arr[bI], arr[aI]];
+    return arr;
+};
 
 
 export {

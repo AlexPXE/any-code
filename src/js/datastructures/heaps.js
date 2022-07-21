@@ -100,6 +100,7 @@ class MaxBinHeap {
     
     /**
      * A method that builds a heap from an array of elements.
+     * @returns {MaxBinHeap} The heap instance.
      */
     buildHeap() {        
         let start = ~~(this.heapSize / 2) - 1;
@@ -109,7 +110,9 @@ class MaxBinHeap {
             }
         }catch({message, name}){
             throw new Error(`${name}: Heap.buildHeap() -> ${message}`);
-        }       
+        }
+
+        return this;
     }   
 
     /**     

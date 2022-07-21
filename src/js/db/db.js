@@ -130,3 +130,49 @@ class DbInterface {
 
 
  
+
+
+
+function merge(arrA, arrB) {
+    const result = [];
+    let i = 0;
+    let j = 0;
+
+    while(i < arrA.length && j < arrB.length) {
+        if(arrA[i] < arrB[j]) {
+            result.push(arrA[i]);
+            i++;
+        } else {
+            result.push(arrB[j]);
+            j++;
+        }
+    }
+
+    while(i < arrA.length) {
+        result.push(arrA[i]);
+        i++;
+    }
+
+    while(j < arrB.length) {
+        result.push(arrB[j]);
+        j++;
+    }
+
+    return result;
+    
+}
+
+function mergeSort(arr) {
+    if(arr.length <= 1) {
+        return arr;
+    }
+
+    const mid = Math.floor(arr.length / 2);
+    const left = arr.slice(0, mid);
+    const right = arr.slice(mid);
+
+    return merge(mergeSort(left), mergeSort(right));
+}
+
+const arr = [1,2,3,6,78,8,90,65,43,3,43,56,6,523,12,1,4,5,78,90];
+console.log(mergeSort(arr));

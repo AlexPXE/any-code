@@ -181,6 +181,7 @@ class MaxBinHeap {
     }
 
     show() {
+        throw new Error(`Heap.show(): Not implemented!`);
     }
 
     /**

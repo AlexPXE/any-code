@@ -13,42 +13,49 @@ const heapSort = (() => {
         [arr[a], arr[b]] = [arr[b], arr[a]];
         return arr;
     };
-    
-    const heapify = (arr, i, heapSize = arr.length) => {
 
+    const defaultCompare = (a, b) => a < b;
+    
+    const heapify = (arr, i, heapSize, callback) => {
+
+        
         const left = 2 * i + 1;
         const right = left + 1;
-        let largest = i;        
+        let largest = i;
         
-        if (left < heapSize && arr[largest] < arr[left]) {           
+        if(!heapSize) {
+            heapSize = arr.length;
+        }
+        
+        if ( left < heapSize && callback(arr[largest], arr[left]) ) {           
             largest = left;
         }
 
-        if(right < heapSize && arr[largest] < arr[right]) {
+        if( right < heapSize && callback(arr[largest], arr[right]) ) {
             largest = right;
         }
 
-        return i !== largest ? heapify( swap(arr, i, largest), largest, heapSize) : arr;        
+        return i !== largest ? heapify( swap(arr, i, largest), largest, heapSize, callback) : arr;        
     };
 
-    const buildHeap = arr => { 
+    const buildHeap = (arr, callback) => { 
 
         let i = Math.floor(arr.length / 2);
 
         while(i) {
-            heapify(arr, --i);
+            heapify(arr, --i, null, callback);
         }
 
         return arr;
     };   
 
-    return arr => {
+    return (arr, callback = defaultCompare) => {
         let heapSize = arr.length;
 
-        buildHeap(arr);
+        buildHeap(arr, callback);
         
         while(--heapSize) {            
-            heapify( swap(arr, 0, heapSize), 0, heapSize );           
+            heapify( swap(arr, 0, heapSize), 0, heapSize, callback);        
         }
 
         return arr;
@@ -56,4 +63,10 @@ const heapSort = (() => {
 })();
 
 
+const arr = [];
+
+console.log(heapSort(['zz', 'ff', 'jj']));
+
 export {heapSort};
+
+

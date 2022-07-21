@@ -35,42 +35,32 @@ class DbTableInterface {
 
 
 class DbTable extends DbTableInterface {
-    #columns;
-    #table = [];
+    
+    #columns = new Map();    
+    #table = new Map();
+    #recycleBin = new Set();
+    #freeID = new Set();    
     #lastId = 0;
-    constructor(...columns) {
-        super();
+    
+    #rowFactory;
 
-        columns.forEach(name => {
-            if(!name || typeof name !== 'string') {
-                throw new Error('Column name must be a string.');
-            }
-        });
+    constructor(columns) { 
+        super();        
 
-        this.#columns = new Set(columns).add('id');
-    }    
-
-    static stringify(table) {
-
-        if(!(table instanceof this)) {
-            throw new Error('Invalid table.');
-        }
-        
-        return JSON.stringify({
-            columns: [...table.#columns],
-            table: table.#table,
-            lastId: table.#lastId
-        });
+        this.#columns = new Map( Object.entries(columns) ).set('id', 'number');
     }
 
-    static parse(str) {
-        const {columns, table, lastId} = JSON.parse(str);
-        const tableInst = new DbTable(...columns);
+    #validateValue(cName, value) {
+        return this.#columns.get(cName) === value?.constructor?.name;
+    }
+    
+    
 
-        table.#table = table;
-        table.#lastId = lastId;
-        
-        return tableInst;
+    #chekPropType(prop, value) {
+        if(!(typeof value !== this.#columns.get(prop))) {
+            throw new TypeError('Invalid type.');
+        }        
+        return value;
     }
     
     getColumns() {
@@ -79,6 +69,15 @@ class DbTable extends DbTableInterface {
 
     getElement(id) {
         
+    }
+
+    addElement(...values) {
+        const row = Object.create(null);
+
+        this.#columns.forEach((type, prop) => {
+            row[prop] = this.#chekPropType(prop, values[prop]);
+        });
+
     }
 
     [Symbol.toPrimitive]() {
@@ -129,3 +128,5 @@ class DbInterface {
     }        
 }
 
+
+ 

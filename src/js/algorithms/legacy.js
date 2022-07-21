@@ -135,7 +135,8 @@ function shellSort(arr, hCallback) {
     const step = (ss) => {        
         return ~~hCallback(ss) || 1;
     };
-    return function sort(n = step(len)) {        
+
+    return function sort( n = step(len) ) {        
         for (let i = n; i < len; i++){
             for(let b = i, s = i - n; s >= 0 && arr[b] < arr[s];){                                
                 [arr[b], arr[s]] = [arr[s], arr[b]];
@@ -143,10 +144,12 @@ function shellSort(arr, hCallback) {
                 s -= n;
             }
         }
+
         if (n > 1){
            return sort(step(n));
         }
-            console.log('shellSort', arr);
+        
+        console.log('shellSort', arr);
     };
 }
 

@@ -798,11 +798,25 @@ function randomPrimeBig(bits = 2) {
  * @param {*} q Divisor.
  * @returns {*} Remainder of the division.
  */
-function modulo(p, q) {    
-    let result = p % Math.abs(q);
+function modulo(p, q) {
+    q = Math.abs(q);    
+    let result = p % q;
     return result < 0 ? result + q : result;
-
 }
+
+function quotientR(a, b) {
+    const r = modulo(a, b);
+   return [(-r + a) / b , modulo(a, b)];
+}
+
+
+function floor(a, b) {
+    return (a - Math.abs(a % b)) / b;
+}
+
+console.log(
+    floor(134, -34), Math.floor(134 / (-34)),
+);
 
 export {    
     CommonFractionBig,   
@@ -818,6 +832,7 @@ export {
     modExpBig, 
     modExpBigR,
     modulo,
+    quotientR,
     randomBig, 
     randomBits,
     randomPrimeBig,

@@ -803,7 +803,10 @@ function modulo(p, q) {
     let result = p % q;
     return result < 0 ? result + q : result;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> b82c494a661125f150412c6509a45cc1f7004b90
 /**
  * The quotientR() returns the quotient and remainder of a division (`p / q`). Works correctly with both positive and negative numbers.
  * @param {number | bigint} a Dividend.

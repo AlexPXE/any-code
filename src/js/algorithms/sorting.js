@@ -137,6 +137,12 @@ const shellSorting = (() => {
 
 
 
+
+const quickSort = (() => {
+    
+})();
+
+
 //array with random numbers
 function generateRandomArray(size, max) {
     const arr = [];

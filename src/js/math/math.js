@@ -803,21 +803,16 @@ function modulo(p, q) {
     let result = p % q;
     return result < 0 ? result + q : result;
 }
-
+/**
+ * The quotientR() returns the quotient and remainder of a division (`p / q`). Works correctly with both positive and negative numbers.
+ * @param {number | bigint} a Dividend.
+ * @param {number | bigint} b Divisor.
+ * @returns {number[] | bigint[]} Array with the quotient and remainder of the division (`[quotient, remainder]`).
+ */
 function quotientR(a, b) {
     const r = modulo(a, b);
-   return [(-r + a) / b , modulo(a, b)];
+   return [(-r + a) / b , r];
 }
-
-
-function floor(a, b) {
-    return (a - Math.abs(a % b)) / b;
-}
-
-console.log(
-    floor(134, -34), Math.floor(134 / (-34)),
-);
-
 export {    
     CommonFractionBig,   
     eulerst,     

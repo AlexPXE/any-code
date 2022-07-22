@@ -69,7 +69,7 @@ const heapSort = (() => {
 
 
 
-const shellSort = (() => {
+const shellSorting = (() => {
     
     const defaultCompare = (a, b) => a < b;
 
@@ -80,62 +80,93 @@ const shellSort = (() => {
         return arr;
     };
 
-    
+    function* stepGenerator(callback, len) {
+        let step = len;
 
-    return (arr, compare = defaultCompare, hCallback = defaultHCallback) => {
+        while(step > 1) {            
+            step = callback(step) || 1;
+            //console.log('step', step);
+            yield step;
+        }        
+    }
 
+    const sort = (arr, compare, stepGen) => {
+        
+        const {value: step} = stepGen.next();
+        
+        const len = arr.length;        
+        
+        let b = 0;
+        let a = 0;
+        let i = step;
+
+        while (i < len) {            
+             b = i;
+             a = i - step;
+
+            while(a >= 0 && compare(arr[b], arr[a])) {
+                swap(arr, a, b);
+                b = a;                                             
+                a -= step;
+            }
+
+            i++;
+        }
+        
+        if (step > 1) {
+            return sort(arr, compare, stepGen);
+        }
+        console.timeEnd('ShellSort');
+        return arr;        
     };
-    
+
+    return (arr, compare, hCallback) => {
+        if(!(compare instanceof Function)) {
+            compare = defaultCompare;
+        }
+
+        if(!(hCallback instanceof Function)) {
+            hCallback = defaultHCallback;
+        }
+
+        console.time('ShellSort');
+        return sort(arr, compare, stepGenerator(hCallback, arr.length));
+    };   
 
 })();
 
-function shellSort(arr, hCallback) {
-    let len = arr.length;  
-
-    const step = (ss) => {        
-        return ~~hCallback(ss) || 1;
-    };
-
-    return function sort( n = step(len) ) {
-
-        for (let i = n; i < len; i++) {        
-            for(let b = i, s = i - n; s >= 0 && arr[b] < arr[s];) {
-                [arr[b], arr[s]] = [arr[s], arr[b]];
-                b = s;                                             
-                s -= n;                                            
-            }
-        }
-
-        if (n > 1) {
-           return sort(step(n));
-        }
-            console.log('shellSort', arr);
-    };
-}
 
 
-
-//arra with random numbers
+//array with random numbers
 function generateRandomArray(size, max) {
     const arr = [];
     for (let i = 0; i < size; i++) {
         arr.push(Math.floor(Math.random() * max));
     }
+
     return arr;
 }
+
+
+
+
+
 
 const arrA = generateRandomArray(10000000, 10000);
 
 const arrB = [...arrA];
 
+const arrC = [...arrA];
 
-heapSort(arrA);
 
+
+shellSorting(arrC);
 console.time('sort');
 arrB.sort((a, b) => a - b);
 console.timeEnd('sort');
 
+heapSort(arrA);
+
 
 export {heapSort};
-
 

@@ -5,7 +5,12 @@
  */
 
 
-//???: class Sortings
+/*
+    TODO: 
+    [ ] 1. quickSort 
+    [ ] 2. insSort
+*/
+
 class Sorting {    
     
     constructor(obj) {
@@ -65,7 +70,7 @@ class SortingFactory {
 
 
 const sortingFactory = new SortingFactory()
-    .addSorting('heapSort', {
+    .addSorting('heap sorting', {
 
         heapify(arr, ind, heapSize, compare) {
             const left = 2 * ind + 1;
@@ -112,7 +117,7 @@ const sortingFactory = new SortingFactory()
 
 
     })
-    .addSorting('shellSort', {
+    .addSorting('Shell sorting', {
 
         defaultHCallback(len) { 
             return Math.floor(len / 2)
@@ -161,84 +166,47 @@ const sortingFactory = new SortingFactory()
             return this.sorting(arr, compare, this.stepGenerator(hCallback, arr.length));
         }
 
+    })
+    .addSorting('insertion sorting', {
+        sort(arr, compare) {
+
+            const len = arr.length;
+            let key = 0;
+            let j = 1;
+            let i = 0;
+        
+            while( ++j < len ) {        
+                key = arr[j];
+                i = j;
+
+                while( i-- > 0 && compare(key, arr[i]) ) { 
+                    arr[i + 1] = arr[i];
+                }
+
+                arr[i + 1] = key;
+            }
+
+            return arr;
+        }
     });
 
 
 
 
+const arr = SortingFactory.randomArr(30, 10);
 
 
+const arrA = [...arr]
+const arrB = [...arr];
+const arrC = [...arr];
 
 
+const sSort = sortingFactory.build('Shell sorting');
+const hSort = sortingFactory.build('heap sorting');
+const iSort = sortingFactory.build('insertion sorting');
 
 
-
-
-
-
-
-
-const sorting = (() => {
-    
-    return {
-
-    };
-})();
-
-
-
-
-const quickSort = (() => {
-    
-})();
-
-
-
-const insSort = (() => {
-
-    const sort = (arr, compare) => {
-        const len = arr.length;
-        let key = 0;
-        let j = 1;
-        let i = 0;
-    
-        while(j < len) {        
-            key = arr[j];
-            i = j;
-
-            while(--i > 0 && arr[i] > key) {
-                arr[i + 1] = arr[i];
-            }
-        }
-    };
-})();
-
-
-//array with random numbers
-function generateRandomArray(size, max) {
-    const arr = [];
-    for (let i = 0; i < size; i++) {
-        arr.push(Math.floor(Math.random() * max));
-    }
-
-    return arr;
-}
-
-
-
-
-
-const arrA = SortingFactory.randomArr(30, 10);
-
-
-const arrB = [...arrA];
-
-
-const sSort = sortingFactory.build('shellSort');
-const hSort = sortingFactory.build('heapSort');
-
-
-console.log(sSort(arrA), hSort(arrB));
+console.log(arr , sSort(arrA), hSort(arrB), iSort(arrC));
 
 
 

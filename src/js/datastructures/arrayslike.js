@@ -4,6 +4,7 @@ import {modulo} from '../math/math.js';
  * @module arrayslike
  */
 
+
 class ObjectBigUint64 {
 
     #buffer;    

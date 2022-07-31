@@ -8,7 +8,7 @@
 /*
     TODO: 
     [ ] 1. quickSort 
-    [ ] 2. insSort
+    [x] 2. insSort
 */
 
 class Sorting {    
@@ -188,26 +188,152 @@ const sortingFactory = new SortingFactory()
 
             return arr;
         }
+    })
+    .addSorting('heap test', {
+        sort(arr, compare) {
+            let ind = Math.floor(arr.length / 2);
+    
+            while(ind) {
+                if(ind > 0 && compare(arr[ind], arr[ind - 1])) {
+                    this.swap(arr, ind, ind - 1);
+                }
+
+                sortingFactory['heap sorting'].heapify(arr, --ind, null, compare);
+            }
+    
+            return arr;
+        }
     });
 
+sortingFactory.addSorting('test sorting', {
+    heapify: sortingFactory['heap sorting'].heapify,
+    buildHeap: sortingFactory['heap sorting'].buildHeap,
+    insSort: sortingFactory['insertion sorting'].sort,
+
+    sort(arr, compare) {        
+        return this.insSort(this.buildHeap(arr, (a, b) => a > b), compare);
+    }
+});
+    
 
 
 
-const arr = SortingFactory.randomArr(30, 10);
+
+const arr = SortingFactory.randomArr(100000, 1000);
 
 
 const arrA = [...arr]
 const arrB = [...arr];
 const arrC = [...arr];
+const arrD = [...arr];
 
 
 const sSort = sortingFactory.build('Shell sorting');
 const hSort = sortingFactory.build('heap sorting');
 const iSort = sortingFactory.build('insertion sorting');
-
-
-console.log(arr , sSort(arrA), hSort(arrB), iSort(arrC));
-
+const test = sortingFactory.build('test sorting');
+const hTest = sortingFactory.build('heap test', false, (a, b) => a > b);
 
 
 
+/*
+console.time('test');
+test(arrD);
+console.timeEnd('test');
+*/
+console.time('iSort')
+iSort( hTest( hTest(arrC) )  );
+console.timeEnd('iSort');
+
+
+console.time('iSortA')
+iSort(arrD);
+console.timeEnd('iSortA');
+
+
+
+console.time('sSort');
+sSort(arrA); 
+console.timeEnd('sSort');
+
+console.time('hSort');
+hSort(arrB);
+console.timeEnd('hSort');
+
+
+
+
+const brut = (k, alph) => {
+    const buf = new Uint32Array(k);
+    let len = alph.length;
+    
+
+    while (true) {
+
+        do {
+
+        } while (++buf[0] < len)
+
+        for(let i = 0; buf[i] === (len - 1) && i < k;) {
+            buf[i] = 0;
+            if(i) {
+
+            }
+            buf[i]++;
+        }
+        
+    }
+};
+
+
+
+function* gen(n, k, callback = (i, k) => i) {
+
+    let i = 0;
+
+    k = k - 1;    
+
+    if(k > -1) {
+        const nextd = gen(n, k, callback);
+
+        while(true) {            
+
+            if(i === n) {
+                i = 0;
+                nextd.next();
+                yield callback(i, k);
+            }
+
+            i++;
+
+            yield callback(i, k);
+        }
+    }
+}
+
+
+const buff = new Uint8Array(5);
+const N = 61;
+
+const g = gen(N, buff.length + 1, (i, k) => {
+    return buff[k] = i;
+});
+
+
+
+let i = 0;
+console.time('brut');
+while(buff[0] < 1) {
+    g.next();    
+    i++;
+}
+
+console.log(buff, i);
+
+console.timeEnd('brut');
+
+
+//console.log(arr , sSort(arrA), hSort(arrB), iSort(arrC), test(arrD));
+
+
+console.log('a'.charCodeAt(0));

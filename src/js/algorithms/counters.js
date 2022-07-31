@@ -59,98 +59,83 @@ const premRep = (n, k, callback = (cellNumber, len, set ) => set) => {
 
 
 class CounterBuilder {
-
-    #defaultCallback = set => false;
-    #defaultOptions = [{alph: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], startInd: 0}];
-    callback = this.#defaultCallback;            
-    options = [];
+    dict = [];
+    startPos = [];
+    defCallback = set => false;
     
 
-    constructor() {        
-    }
-
-
-
-    *#counter(options, set, cellNumber) {
-        
-        if(cellNumber > -1) {
-            const nextCell = this.#counter(options, set, cellNumber - 1);            
-            const {alph, startInd} = options[cellNumber];
-            const alphLen = alph.length;
-            let a = startInd + 1;
-
-            do {
-                
-                while(a < alphLen) {
-                    set[cellNumber] = alph[a++];                     
-                    yield true;
-                }
-                a = 0;
-
-            }while(nextCell.next().value)          
-
-
-        } else {
-            yield false;
-           
-        }
-    }
-
-    reset() {
-        this.options = this.#defaultOptions;
-        this.callback = this.#defaultCallback;
-    }
-
-    *create() {
-        const options = this.options.length > 0 ? this.options : this.#defaultOptions;
+    create() {
+        const dict = this.dict;
+        const rangeLimit = this.dict.map(d => d.length);
         const set = [];
-        const counter = this.#counter(options, set, options.length - 1);
-        const {callback} = this;        
+
+        const counters = Math.max(...rangeLimit) > UINT8_MAX ? 
+            new Uint32Array(rangeLimit.length) : 
+            new Uint8Array(rangeLimit.length);       
         
-        for(let {startInd, alph} of options) {
-            set.push(alph[startInd]);
-        }
+        this.startPos.forEach((start, i) => {
+            counters[i] = start;
+            set[i] = dict[i][start];
+        });
+        
+        this.dict = [];
+        this.startPos = [];
 
-         do {           
+        return (callback = this.defCallback) => this.premRep(dict, counters, rangeLimit, set, callback); 
+    }   
+    
 
-            if(callback(set) === true) {                
-                console.log(set);
-                return true;
+    addCounter(dict, start = 0) {
+        this.dict.push(dict);
+        this.startPos.push(start);
+        return this;
+    }
+
+    premRep(dict, counters, rangeLimit, set, callback) {
+        const firstC = counters.length - 1;
+        const lastC = 0;
+        const loop = true;
+        let indC = firstC;
+        let counter = 0;
+        
+
+        while(loop) {
+
+            while(counters[firstC] < rangeLimit[firstC]) {
+
+                set[firstC] = dict[firstC][counters[firstC]];
+                counter++;
+                if(callback(set)) {
+                    return set;
+                }
+
+                counters[firstC]++;
             }
-            
-            yield false;
-        } while(counter.next().value)
+
+            while(counters[indC] === rangeLimit[indC]) {
+
+                if(indC === lastC) {
+                    return counter;
+                }
+                
+                counters[indC] = 0;
+                set[indC] = dict[indC][counters[indC]];
+                indC--;
+                counters[indC]++;
+            }
+
+            counter++;
+            set[indC] = dict[indC][counters[indC]];
+            if(callback(set)) {
+                return set;
+            }
+
+            counters[firstC]++;
+            indC = firstC;
+        }
     }
-
-    addCounter(alph, startInd = 0) {        
-
-        if( !(alph instanceof Array) && !(typeof alph === 'string') ) {
-            throw new TypeError('First argument must be an array or string');
-        }
-
-        if(typeof startInd !== 'number') {
-            throw new TypeError('Second argument must be a positive number');
-        }
-
-        if(startInd < 0 || startInd > alph.length) {
-            throw new RangeError('arguments[1] must be >= 0 and < arguments[0].length');
-        }
-
-        
-        this.options.push({alph, startInd});
-        return this;
-    }
-
-    addCallback(callback) {
-        if(!(callback instanceof Function)) {
-            throw new TypeError('Argument must be a function');
-        }
-
-        this.callback = callback;        
-        return this;
-    }
+    
 }
-
 
 
 
@@ -161,7 +146,7 @@ const temp = [];
 const pass = [];
 const brut = new Set();
 const dict = [];
-const K = 5;
+const K = 6;
 
 for(let i = 0; i < K; i++) {
     //pass.push(alp[Math.floor(Math.random() * alpLen)]);
@@ -188,21 +173,17 @@ premRep(alpLen, K, (c, len, set) => {
 console.log(temp);
 console.timeEnd('premRep');
 
+const counter = new CounterBuilder();
 
-
-const test = new CounterBuilder()
-    .addCallback(set => brut.has(set.join('')))
-    
-for(let i = 0; i < K; i++) {
-    test.addCounter(dict[i]);
+for(let d of dict) {
+    counter.addCounter(d);
 }
 
-
-const counter = test.create();
-
-console.time('counter');
-while(counter.next().done === false) {    
-}
-console.timeEnd('counter');
+const prem = counter.create();
 
 
+console.time('builder');
+console.log(prem( set => {
+     return brut.has(set.join(''));
+}));
+console.timeEnd('builder');

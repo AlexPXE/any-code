@@ -7,64 +7,6 @@
  */
 
 const UINT8_MAX = 255;
-
-
-const premRep = (n, k, callback = (cellNumber, len, set ) => set) => {
-    
-    if(n <= 0 || k <= 0 || !(callback instanceof Function)) {
-        throw new Error(`Invalid arguments n = ${n}, k = ${k}, callback = ${callback}`);
-    }
-    
-    const set = n > UINT8_MAX ? new Uint32Array(k) : new Uint8Array(k);
-    const firstCell = k - 1;
-    const lastCell = 0; 
-    
-    let loop = true;    
-    let cellInd = firstCell;
-    let counter = 0;
-    
-
-    while (loop) {        
-
-        while (set[firstCell] < n) {
-            
-            if (callback(firstCell, k, set)) {
-                return true;
-            }
-
-            set[firstCell]++;
-            counter++;
-        }
-
-        /** reset cells on overflow*/        
-         while(set[cellInd] === n) { 
-            
-            /** 
-             * if cellInd is the last cell (cellInd === 0), return
-             */
-            if(cellInd === lastCell) {
-                return false;
-            }
-            /**
-             * reset cell value and move to next cell and increment its value
-             */
-            set[cellInd--] = 0;
-            set[cellInd]++;
-        }
-        
-        if (callback(cellInd, k, set)) {
-            return true;
-        }
-        
-        counter++;
-        set[firstCell]++;        
-        cellInd = firstCell;
-    }
-
-    return counter;
-};
-
-
 class CounterBuilder {
     /**
      * Array of dictionaries.

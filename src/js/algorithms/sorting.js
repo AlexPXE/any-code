@@ -126,17 +126,17 @@ const sortingFactory = new SortingFactory()
         *stepGenerator(callback, len) {
             let step = len;
     
-            while(step > 1) {            
+            while(step > 1) {
                 step = callback(step) || 1;            
                 yield step;
             }        
         },
 
         sorting(arr, compare, stepGen) {
+            
         
             const {value: step} = stepGen.next();
-            
-            const len = arr.length;        
+            const {length: len} = arr;
             
             let b = 0;
             let a = 0;
@@ -205,60 +205,38 @@ const sortingFactory = new SortingFactory()
         }
     });
 
-sortingFactory.addSorting('test sorting', {
-    heapify: sortingFactory['heap sorting'].heapify,
-    buildHeap: sortingFactory['heap sorting'].buildHeap,
-    insSort: sortingFactory['insertion sorting'].sort,
 
-    sort(arr, compare) {        
-        return this.insSort(this.buildHeap(arr, (a, b) => a > b), compare);
-    }
-});
-    
-
-
-
-
-const arr = SortingFactory.randomArr(100000, 1000);
-
+/*
+const arr = SortingFactory.randomArr(10_000_000, 1000);
 
 const arrA = [...arr]
 const arrB = [...arr];
 const arrC = [...arr];
 const arrD = [...arr];
 
-
 const sSort = sortingFactory.build('Shell sorting');
 const hSort = sortingFactory.build('heap sorting');
 const iSort = sortingFactory.build('insertion sorting');
-const test = sortingFactory.build('test sorting');
-const hTest = sortingFactory.build('heap test', false, (a, b) => a > b);
-
-
-
-/*
-console.time('test');
-test(arrD);
-console.timeEnd('test');
-*/
-console.time('iSort')
-iSort( hTest( hTest(arrC) )  );
-console.timeEnd('iSort');
-
-
-console.time('iSortA')
-iSort(arrD);
-console.timeEnd('iSortA');
-
-
 
 console.time('sSort');
 sSort(arrA); 
 console.timeEnd('sSort');
 
+
+console.time('test');
+test(arrD);
+console.timeEnd('test');
+
+
+console.time('iSort')
+iSort( hTest( hTest(arrC) )  );
+console.timeEnd('iSort');
+
+console.time('iSortA')
+iSort(arrD);
+console.timeEnd('iSortA');
+
 console.time('hSort');
 hSort(arrB);
 console.timeEnd('hSort');
-
-
-
+*/

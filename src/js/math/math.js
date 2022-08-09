@@ -723,7 +723,7 @@ function fermaTestBig(p, checks = FERMAS_TEST_DEFAULT_CHECKS) {
         
         const a = randomBig(FERMAS_TEST_MIN_RANDOM_NUMBER, p);  
 
-        if(modExpBig(a, p - BIG_ONE, p) !== BIG_ONE) {
+        if( modExpBig(a, p - BIG_ONE, p) !== BIG_ONE ) {
             return false;
         }
 
@@ -772,7 +772,6 @@ function randomBits(bits = 1) { //???: Check if it works correctly.
     return bitsArr;
 }
 
-
 /**
  * The randomPrimeBig() returns a random prime `bigint` with `bits` size.
  * Recursive version.
@@ -794,14 +793,25 @@ function randomPrimeBig(bits = 2) {
 /**
  * Returns the remainder of a division (`p % q`). Works correctly with both positive and negative numbers.
  * 
- * @param {*} p Dividend.
- * @param {*} q Divisor.
- * @returns {*} Remainder of the division.
+ * @param {any} p Dividend.
+ * @param {any} q Divisor.
+ * @returns {any} Remainder of the division.
  */
-function modulo(p, q) {    
-    let result = p % Math.abs(q);
+function modulo(p, q) {
+    q = Math.abs(q);    
+    let result = p % q;
     return result < 0 ? result + q : result;
+}
 
+/**
+ * The quotientR() returns the quotient and remainder of a division (`p / q`). Works correctly with both positive and negative numbers.
+ * @param {number | bigint} a Dividend.
+ * @param {number | bigint} b Divisor.
+ * @returns {number[] | bigint[]} Array with the quotient and remainder of the division (`[quotient, remainder]`).
+ */
+function quotientR(a, b) {
+    const r = modulo(a, b);
+   return [(-r + a) / b , r];
 }
 
 export {    
@@ -818,8 +828,11 @@ export {
     modExpBig, 
     modExpBigR,
     modulo,
+    quotientR,
     randomBig, 
     randomBits,
     randomPrimeBig,
     random, 
 };
+
+

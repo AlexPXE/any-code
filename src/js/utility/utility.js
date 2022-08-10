@@ -122,12 +122,12 @@ function CustomJSON(typeHandlers = DEFAULT_TYPE_HANDLERS) {
 
     /**
      * The Convert() method checks if the `value?.constructor?.name` is in the {@link handlers handlers} if so, 
-     * it uses the handler from the {@link handlers handlers} to convert the value.     * 
+     * it uses the handler from the {@link handlers handlers} to convert the value. 
      * 
      * @param {any} value 
      * @returns {(ValueWrapp | any)}    
      */
-    const convert = value => {
+    function convert (value) {
         const type = value?.constructor?.name;
             
         if( handlers.has(type) ) {                
@@ -144,7 +144,7 @@ function CustomJSON(typeHandlers = DEFAULT_TYPE_HANDLERS) {
      * @param {any} value 
      * @returns {any}
      */
-    const toOriginal = value => {       
+    function toOriginal (value) {       
         if(value?.JSONdecodeType) {            
             return handlers.get(value.JSONdecodeType).d(value.JSONdecodeValue);
         }
@@ -166,16 +166,10 @@ function CustomJSON(typeHandlers = DEFAULT_TYPE_HANDLERS) {
     this.encode = (function() /**function*/ {        
     
         const cbFactory = replacer => {     /*JSON.stringify callback factory*/
-    
-            if( isVoid(replacer) ) {        /*If there is no replacer*/
+              
+            if( typeof replacer === 'function' ) { 
                 return function(key, value) {
-                    return convert(value);
-                };
-            }
-    
-            if( typeof replacer === 'function' ) {
-                return function(key, value) {
-                    return convert( replacer(key, value) );
+                    return convert( replacer.call(this, key, value) );
                 };
             }
     
@@ -187,13 +181,18 @@ function CustomJSON(typeHandlers = DEFAULT_TYPE_HANDLERS) {
     
                 return function(key, value) {
                     
-                    if( inclProps.has(key) || Array.isArray(this) ) {
+                    if( inclProps.has(key) || Array.isArray(this) ) { /*https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter*/
                         return convert(value);
                     } 
     
                     return undefined;
                 }
-            }        
+            }
+
+            //If not a function and not an array
+            return function(key, value) {
+                return convert(value);
+            };
         }
         
         return (value, replacer, space) => {        
@@ -362,5 +361,3 @@ export {
     isVoid,
     swap,
 }
-
-

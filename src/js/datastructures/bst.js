@@ -10,15 +10,7 @@ class AVLNode {
 
     [Symbol.toPrimitive](hint) {
         return this.height;
-    }    
-
-    get leftH() {        
-        return 0 + this.left;
-    }
-
-    get rightH () {
-        return 0 + this.right;
-    }
+    }        
 
     get bfactor() {
         return this.right - this.left;
@@ -33,8 +25,15 @@ class AVLTree {
     #root = null;
     #compare;
 
-    constuctor(compare = (a, b) => a > b ? 1 : 0) {        
-        this.setCompare(compare);
+    constructor(compare = (a, b) => a > b ? 1 : 0) {
+        if(typeof compare === 'function') {
+            const right = 'right';
+            const left = 'left'
+            
+            this.#compare = (a, b) => compare(a, b) > 0 ? right : left;            
+        }
+
+        throw new TypeError('Argument must be a function.');
     }
     
     #addNode(root, key) {
@@ -42,7 +41,7 @@ class AVLTree {
             return new AVLNode(key);
         }
 
-        const child = this.#compare(key, root.key); //'right' or 'left'
+        const child = this.#compare(key, root.key); //if key > root.key then 'right' else 'left'
         root[child] = this.#addNode(root[child], key);
 
         root.adjustH();
@@ -50,10 +49,11 @@ class AVLTree {
     }
 
     insert(key) {
-        this.root = this.#addNode(this.root, key);
+        this.#root = this.#addNode(this.#root, key);
+        return this;
     }
 
-    balance(node = this.root) {
+    balance(node = this.#root) {
         if(node.bfactor  === 2) {
             
             if(node.right.bfactor < 0 ) {
@@ -68,7 +68,7 @@ class AVLTree {
             if(node.left.bfactor > 0) {
                 node.left = this.leftTurn(node.left);
             }
-            
+
             return this.rightTurn(node);
         }
 
@@ -95,20 +95,41 @@ class AVLTree {
         root.adjustH();
 
         return root;
-    }
+    }    
 
-    setCompare(callback) {
-        if(typeof callback === 'function') {
-            const right = 'right';
-            const left = 'left'
-
-            this.#compare = (a, b) => callback(a, b) > 0 ? right : left;
-            return this;
+    show(root = this.#root) {
+        if(root === null) {
+            return;
         }
 
-        throw new TypeError('Argument must be a function.');
+        this.show(root.left);
+        console.log(root.key);
+        this.show(root.right);
+        
+        return;
+    }  
+
+    search(key, root = this.#root) {
+        if(root === null) {
+            return null;
+        }
+
+
     }
 }
+
+const tree = new AVLTree();
+const arr = [];
+
+
+for(let i = 0, j; i < 10; i++) {
+    j = Math.floor(Math.random() * 100);
+    tree.insert(j);
+    arr.push(j);
+}
+
+console.log('=======');
+tree.show();
 
 export {
     AVLTree

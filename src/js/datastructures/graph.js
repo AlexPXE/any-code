@@ -35,7 +35,7 @@ class Vertex {
 
 
 
-//graph
+//TODO:graph
 class Graph {
     constructor() {
         this.vertices = new Map(); //[name, vertex]

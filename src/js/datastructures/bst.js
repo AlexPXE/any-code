@@ -13,9 +13,10 @@ const AVLTree = (function(){
     
         [Symbol.toPrimitive](hint) {
             return this.height;
-        }        
-    
-        get bfactor() {
+        }    
+        
+
+        bfactor() {
             return this.right - this.left;
         }
     
@@ -78,39 +79,21 @@ const AVLTree = (function(){
 
         return root;
     }
+        
+    
+    function balance(node) {        
 
-    const balanceO = {
-        '2': function(node) {
-
-            if(node.right.bfactor < 0 ) {
+        if(node.bfactor()  === 2) {
+            if(node.right.bfactor() < 0 ) {
                 node.right = rightTurn(node.right);
             }
             
-            return leftTurn(node);
-        },
-
-        '-2': function(node) {                
-                if(node.left.bfactor > 0 ) {
-                    node.left = leftTurn(node.left);
-                }
-                
-                return rightTurn(node);
-        }
-    };
-
-    function balance(node) {
-        if(node.bfactor  === 2) {
-            
-            if(node.right.bfactor < 0 ) {
-                node.right = rightTurn(node.right);
-            }
-            
-            return leftTurn(node);
+            return leftTurn(node);            
         }
 
-        if(node.bfactor === -2) {
+        if(node.bfactor() === -2) {
 
-            if(node.left.bfactor > 0) {
+            if(node.left.bfactor() > 0) {
                 node.left = leftTurn(node.left);
             }
 
@@ -150,9 +133,9 @@ const AVLTree = (function(){
     
             const child = callback(key, node.key); //if key > root.key then 'right' else 'left'
             node[child] = addNode(node[child], key);
-    
+            
             node.adjustH();
-            return Math.abs(node.bfactor) === 2 ? balance(node) : node;
+            return Math.abs( node.bfactor() ) > 1 ? balance(node) : node;
         }
 
         return addNode;
@@ -199,9 +182,8 @@ const arr = [];
 
 
 console.time('push');
-for(let i = 0, j; i < 10000000; i++) {
-    j = Math.floor(Math.random() * 100000);
-    arr.push(j);
+for(let i = 0; i < 10000000; i++) {    
+    arr.push(i);
 }
 console.timeEnd('push');
 
@@ -209,9 +191,8 @@ console.log('next =====>');
 
 
 console.time('insert');
-for(let i = 0, j; i < 10000000; i++) {
-    j = Math.floor(Math.random() * 100000);
-   tree.insert(j);
+for(let i = 0; i < 10000000; i++) {    
+   tree.insert(i);
 }
 console.timeEnd('insert');
 
@@ -236,5 +217,4 @@ console.timeEnd('tree');
 export {
     AVLTree
 }
-
 

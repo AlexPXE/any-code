@@ -1,6 +1,6 @@
+import { isVoid } from '../utility/utility.js';
 
-
-const AVLTree = (function(){    
+const AVLTree = (function(){ 
     class AVLNode {
         key;
         left = null;
@@ -26,7 +26,7 @@ const AVLTree = (function(){
 
     const orderMethods = {
         preorder: function preOrder(node, callback) {
-            if (node) {
+            if ( !isVoid(node) ) {
                 callback(node.key);
                 preOrder(node.left, callback);
                 preOrder(node.right, callback);
@@ -36,7 +36,7 @@ const AVLTree = (function(){
         },
 
         inorder: function inOrder (node, callback) {
-            if (node) {
+            if ( !isVoid(node) ) {
                 inOrder(node.left, callback);
                 callback(node.key);
                 inOrder(node.right, callback);
@@ -46,7 +46,7 @@ const AVLTree = (function(){
         },
 
         postorder: function postOrder (node, callback) {
-            if (node) {
+            if ( !isVoid(node) ) {
                 postOrder(node.left, callback);
                 postOrder(node.right, callback);
                 callback(node.key);
@@ -79,6 +79,25 @@ const AVLTree = (function(){
         return root;
     }
 
+    const balanceO = {
+        '2': function(node) {
+
+            if(node.right.bfactor < 0 ) {
+                node.right = rightTurn(node.right);
+            }
+            
+            return leftTurn(node);
+        },
+
+        '-2': function(node) {                
+                if(node.left.bfactor > 0 ) {
+                    node.left = leftTurn(node.left);
+                }
+                
+                return rightTurn(node);
+        }
+    };
+
     function balance(node) {
         if(node.bfactor  === 2) {
             
@@ -102,7 +121,7 @@ const AVLTree = (function(){
     }
 
     function find(node, predicate) {
-        if(node === null) {
+        if( isVoid(node) ) {
             return null;
         }
 
@@ -125,7 +144,7 @@ const AVLTree = (function(){
         const callback = (a, b) => compare(a, b) > 0 ? right : left;
         
         function addNode(node, key) {
-            if(node === null) {
+            if( isVoid(node) ) {
                 return new AVLNode(key);
             }
     
@@ -133,7 +152,7 @@ const AVLTree = (function(){
             node[child] = addNode(node[child], key);
     
             node.adjustH();
-            return balance(node);    
+            return Math.abs(node.bfactor) === 2 ? balance(node) : node;
         }
 
         return addNode;
@@ -178,24 +197,44 @@ const AVLTree = (function(){
 const tree = new AVLTree();
 const arr = [];
 
-for(let i = 0, j; i < 10; i++) {
-    j = Math.floor(Math.random() * 100);
-    tree.insert(j);
+
+console.time('push');
+for(let i = 0, j; i < 10000000; i++) {
+    j = Math.floor(Math.random() * 100000);
     arr.push(j);
 }
+console.timeEnd('push');
+
+console.log('next =====>');
 
 
-tree.traversal(console.log);
+console.time('insert');
+for(let i = 0, j; i < 10000000; i++) {
+    j = Math.floor(Math.random() * 100000);
+   tree.insert(j);
+}
+console.timeEnd('insert');
 
+console.log('next =====>');
+
+console.time('array');
+console.log(arr.find(k => k === 94001));
+console.timeEnd('array');
+
+console.time('tree');
 console.log(tree.findByKey(k => {
-    if(k === 53) {
+
+    if(k === 94001) {
         return 0;
     }
     
-    return k > 50 ? 1 : -1;
+    return k > 94001 ? -1 : 1;
 }));
+console.timeEnd('tree');
 
 
 export {
     AVLTree
 }
+
+

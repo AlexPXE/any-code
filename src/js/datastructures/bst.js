@@ -10,20 +10,26 @@ const AVLTree = (function(){
         constructor(value = null) {
             this.key = value;
         }
-    
-        [Symbol.toPrimitive](hint) {
-            return this.height;
-        }    
         
+        lHeight() {
+            
+            return this.left?.height || 0;
+        }
+
+        rHeight() {
+            return this.right?.height || 0;
+        }
 
         bfactor() {
-            return this.right - this.left;
+            return ( this.rHeight() - this.lHeight());
         }
     
-        adjustH() {
-            return this.height = Math.max(this.right, this.left) + 1;
+        adjustH() {            
+            return this.height = Math.max(this.rHeight(), this.lHeight()) + 1;
         }
     }
+
+    
 
     const orderMethods = {
         preorder: function preOrder(node, callback) {
@@ -118,21 +124,22 @@ const AVLTree = (function(){
         }
     }
     
+    function adjustH(node) {
 
-    function addNodeFactory(compare) {
+    }
 
-        const right = 'right';
-        const left = 'left';
-
-        const callback = (a, b) => compare(a, b) > 0 ? right : left;
+    function addNodeFactory(compare) {        
         
         function addNode(node, key) {
             if( isVoid(node) ) {
                 return new AVLNode(key);
             }
-    
-            const child = callback(key, node.key); //if key > root.key then 'right' else 'left'
-            node[child] = addNode(node[child], key);
+            
+            if( compare(key, node.key) > 0) {
+                node.right = addNode(node.right, key);
+            } else {
+                node.left = addNode(node.left, key);
+            }            
             
             node.adjustH();
             return Math.abs( node.bfactor() ) > 1 ? balance(node) : node;
@@ -199,17 +206,17 @@ console.timeEnd('insert');
 console.log('next =====>');
 
 console.time('array');
-console.log(arr.find(k => k === 94001));
+console.log(arr.find(k => k === 9831456));
 console.timeEnd('array');
 
 console.time('tree');
 console.log(tree.findByKey(k => {
 
-    if(k === 94001) {
+    if(k === 9831456) {
         return 0;
     }
     
-    return k > 94001 ? -1 : 1;
+    return k > 9831456 ? -1 : 1;
 }));
 console.timeEnd('tree');
 

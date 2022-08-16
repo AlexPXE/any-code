@@ -2,15 +2,17 @@
   "name": "other",
   "version": "1.0.0",
   "description": "",
-  "main": "test.js",
+  "main": "main.js",
   "scripts": {
-    "jsdoc": "jsdoc -c jsdoc.json"
+    "jsdoc": "jsdoc -c jsdoc.json",
+    "test" : "ava"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "ava": "^4.3.1",
     "eslint": "^8.20.0"
   }
 }

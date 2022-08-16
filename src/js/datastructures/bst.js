@@ -11,8 +11,7 @@ const AVLTree = (function(){
             this.key = value;
         }
         
-        lHeight() {
-            
+        lHeight() {            
             return this.left?.height || 0;
         }
 
@@ -21,15 +20,13 @@ const AVLTree = (function(){
         }
 
         bfactor() {
-            return ( this.rHeight() - this.lHeight());
+            return (this.rHeight() - this.lHeight());
         }
     
         adjustH() {            
             return this.height = Math.max(this.rHeight(), this.lHeight()) + 1;
         }
-    }
-
-    
+    }    
 
     const orderMethods = {
         preorder: function preOrder(node, callback) {
@@ -85,11 +82,11 @@ const AVLTree = (function(){
 
         return root;
     }
-        
     
+   
     function balance(node) {        
 
-        if(node.bfactor()  === 2) {
+        if(node.bfactor() === 2) {
             if(node.right.bfactor() < 0 ) {
                 node.right = rightTurn(node.right);
             }
@@ -108,6 +105,7 @@ const AVLTree = (function(){
 
         return node;
     }
+    
 
     function find(node, predicate) {
         if( isVoid(node) ) {
@@ -124,14 +122,14 @@ const AVLTree = (function(){
         }
     }
     
-    function adjustH(node) {
+    function adjustH(node) {//???: delete
 
     }
 
     function addNodeFactory(compare) {        
         
         function addNode(node, key) {
-            if( isVoid(node) ) {
+            if( node === null ) {
                 return new AVLNode(key);
             }
             
@@ -142,14 +140,12 @@ const AVLTree = (function(){
             }            
             
             node.adjustH();
-            return Math.abs( node.bfactor() ) > 1 ? balance(node) : node;
+            return Math.abs(node.bfactor()) === 2 ? balance(node) : node;
         }
 
         return addNode;
         
     }
-
-
     return class AVLTree {              
         #root = null;
         insert;
@@ -183,14 +179,14 @@ const AVLTree = (function(){
 })();
 
 
-
+/*
 const tree = new AVLTree();
 const arr = [];
-
 
 console.time('push');
 for(let i = 0; i < 10000000; i++) {    
     arr.push(i);
+
 }
 console.timeEnd('push');
 
@@ -199,8 +195,8 @@ console.log('next =====>');
 
 console.time('insert');
 for(let i = 0; i < 10000000; i++) {    
-   tree.insert(i);
-}
+    tree.insert(i);
+}     
 console.timeEnd('insert');
 
 console.log('next =====>');
@@ -220,6 +216,7 @@ console.log(tree.findByKey(k => {
 }));
 console.timeEnd('tree');
 
+*/
 
 export {
     AVLTree

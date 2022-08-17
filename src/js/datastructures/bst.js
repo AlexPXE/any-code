@@ -1,36 +1,33 @@
 import { isVoid } from '../utility/utility.js';
 
-const AVLTree = (function(){ 
+const AVLTree = ( function() { 
     
-    const TestNode = (function () {
-        const protoNode = Object.create(null);
-        protoNode.key = 0;
-        protoNode.left = null;
-        protoNode.right = null;
-        protoNode.height = 1;
+    const TestNode = ( function () {
+        function AVLNode(value) {
+            this.key = value;
+            this.left = null;
+            this.right = null;
+            this.height = 1;
+        }
 
-        protoNode.lHeight = function() {            
+        AVLNode.prototype.lHeight = function() {            
             return this.left?.height || 0;
         }
 
-        protoNode.rHeight = function() {
+        AVLNode.prototype.rHeight = function() {
             return this.right?.height || 0;
         }
 
-        protoNode.bfactor = function() {
+        AVLNode.prototype.bfactor = function() {
             return (this.rHeight() - this.lHeight());
         }
     
-        protoNode.adjustH = function() {            
+        AVLNode.prototype.adjustH = function() {            
             return this.height = Math.max(this.rHeight(), this.lHeight()) + 1;
         }
 
-        return function (value) {
-            const node = Object.create(protoNode);
-            node.key = value;
-            return node;
-        }
-    })();
+        return AVLNode;
+    } )();
 
     const orderMethods = {
         preorder: function preOrder(node, callback) {
@@ -129,7 +126,7 @@ const AVLTree = (function(){
         
         function addNode(node, key) {
             if( node === null ) {
-                return TestNode(key);
+                return new TestNode(key);
             }
             
             if( compare(key, node.key) > 0) {
@@ -152,7 +149,7 @@ const AVLTree = (function(){
         constructor(compare = (a, b) => a > b ? 1 : 0) {
             if(typeof compare !== 'function') {
                 throw new TypeError('Argument must be a function.');    
-            }
+            }            
 
             this.insert = (() => {
                 const addNode = addNodeFactory(compare);

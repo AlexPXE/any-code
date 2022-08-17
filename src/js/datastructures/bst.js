@@ -1,32 +1,36 @@
 import { isVoid } from '../utility/utility.js';
 
 const AVLTree = (function(){ 
-    class AVLNode {
-        key;
-        left = null;
-        right = null;
-        height = 1;
     
-        constructor(value = null) {
-            this.key = value;
-        }
-        
-        lHeight() {            
+    const TestNode = (function () {
+        const protoNode = Object.create(null);
+        protoNode.key = 0;
+        protoNode.left = null;
+        protoNode.right = null;
+        protoNode.height = 1;
+
+        protoNode.lHeight = function() {            
             return this.left?.height || 0;
         }
 
-        rHeight() {
+        protoNode.rHeight = function() {
             return this.right?.height || 0;
         }
 
-        bfactor() {
+        protoNode.bfactor = function() {
             return (this.rHeight() - this.lHeight());
         }
     
-        adjustH() {            
+        protoNode.adjustH = function() {            
             return this.height = Math.max(this.rHeight(), this.lHeight()) + 1;
         }
-    }    
+
+        return function (value) {
+            const node = Object.create(protoNode);
+            node.key = value;
+            return node;
+        }
+    })();
 
     const orderMethods = {
         preorder: function preOrder(node, callback) {
@@ -58,7 +62,6 @@ const AVLTree = (function(){
 
             return;
         }
-
     };
 
     function rightTurn(node) {
@@ -120,17 +123,13 @@ const AVLTree = (function(){
             case 1:
                 return find(node.right, predicate);            
         }
-    }
-    
-    function adjustH(node) {//???: delete
-
-    }
+    }  
 
     function addNodeFactory(compare) {        
         
         function addNode(node, key) {
             if( node === null ) {
-                return new AVLNode(key);
+                return TestNode(key);
             }
             
             if( compare(key, node.key) > 0) {
@@ -178,47 +177,7 @@ const AVLTree = (function(){
     }
 })();
 
-
-/*
-const tree = new AVLTree();
-const arr = [];
-
-console.time('push');
-for(let i = 0; i < 10000000; i++) {    
-    arr.push(i);
-
-}
-console.timeEnd('push');
-
-console.log('next =====>');
-
-
-console.time('insert');
-for(let i = 0; i < 10000000; i++) {    
-    tree.insert(i);
-}     
-console.timeEnd('insert');
-
-console.log('next =====>');
-
-console.time('array');
-console.log(arr.find(k => k === 9831456));
-console.timeEnd('array');
-
-console.time('tree');
-console.log(tree.findByKey(k => {
-
-    if(k === 9831456) {
-        return 0;
-    }
-    
-    return k > 9831456 ? -1 : 1;
-}));
-console.timeEnd('tree');
-
-*/
-
 export {
-    AVLTree
+    AVLTree,    
 }
 

@@ -1,5 +1,7 @@
+
 import { AVLTree } from '../src/js/datastructures/bst.js';
 import { isVoid } from '../src/js/utility/utility.js';
+
 // @ts-ignore
 import test from 'ava';
 
@@ -7,6 +9,7 @@ const INSERT_SPEED_TEST_TIME = 9;
 const AMOUNT_OF_ELEMENTS = 10_000_000;
 const SEARCH_ELEMENT = 9_333_123;
 
+//callback for find method in AVLTree.
 const predicateF = k => {
 	if(SEARCH_ELEMENT === k) {
 		return 0;
@@ -24,11 +27,22 @@ function TestNode(value) {
 	this.height = 1;
 }
 
+function NodeArray(limit = AMOUNT_OF_ELEMENTS) {
+	const arr = [];
+	for(let i = 0; i < limit; i++) {
+		arr.push(new TestNode(i));
+	}
+	return key => arr[key];
+}
+
+
 const NodeFabric = (NodeClass) => {
 	return val => {
 		return new NodeClass(val);
 	};
 };
+
+
 
 function testMethods({
 	obj, 									//test object
@@ -84,13 +98,11 @@ function testMethods({
 	t.assert(
 		insertTime < insertTimeLimit, 
 		`${insertTime} seconds have passed.`
-	);
-
+	)
 	t.assert(
 		processedSearchResult === expectedResult, 
 		`${processedSearchResult} is not equal to ${expectedResult}` 
-	);
-
+	)
 	t.log(`
 		insertion time ${insertTime}s,
 		find time: ${findTime}s, 
@@ -99,19 +111,33 @@ function testMethods({
 	`);
 }
 
-
-
 test.serial("Test AVLTree", t => {
 
 	testMethods({
-		obj: new AVLTree(),	
+		obj: new AVLTree(({key: d}, key) => {
+			if(key > d) {
+				return 1;
+			}
+			return 0;
+		}),
+
+		Filler: NodeArray(),
 		insert: {
 			iName: "insert"
 		}, 						
 		searchMethod: {
 			fName: "findByKey",				
-			predicate: predicateF,  											
-			serchValue: null,			
+			predicate: ({key}) => {
+				if(key === SEARCH_ELEMENT) {
+					return 0;
+				}				
+				if(key < SEARCH_ELEMENT) {
+					return -1;
+				}
+				return 1;				
+			},											
+			serchValue: null,
+			searchResultHandler: res => res.key,
 		},		
 	}, t);
 });
@@ -188,5 +214,21 @@ test.serial('Set', t => {
 	}, t);
 });
 
+
+test.serial('OtherAvl', t => {
+	testMethods({
+		obj: new AVL(),
+		Filler: NodeArray(),
+		insert: {
+			iName: "insert"
+		}, 						
+		searchMethod: {
+			fName: "find",
+			predicate: null,
+			serchValue: SEARCH_ELEMENT,
+			searchResultHandler: ({key}) => key,
+		}		
+	}, t);
+})
 
 test.todo("Test AVLTree.prototype.remove()");

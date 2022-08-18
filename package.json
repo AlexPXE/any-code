@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "jsdoc": "jsdoc -c jsdoc.json",
-    "test" : "ava"
+    "test": "ava"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +13,8 @@
   "type": "module",
   "devDependencies": {
     "ava": "^4.3.1",
-    "eslint": "^8.20.0"
+    "eslint": "^8.20.0",
+    "tap-nyan": "^1.1.0",
+    "tap-spec": "^5.0.0"
   }
 }

@@ -6,7 +6,7 @@ const AVLTree = ( function () {
 
     const TestNode = ( function () {
         function AVLNode(value) {
-            this.key = value;
+            this.data = value;
             this.left = null;
             this.right = null;
             this.height = 1;
@@ -15,16 +15,14 @@ const AVLTree = ( function () {
         AVLNode.prototype.lHeight = function () {
             if(this.left === null) {
                 return 0;
-            }
-            
+            }            
             return this.left.height;
         }
 
         AVLNode.prototype.rHeight = function () {
             if(this.right === null) {
                 return 0;
-            }
-            
+            }            
             return this.right.height;
         }
 
@@ -35,28 +33,62 @@ const AVLTree = ( function () {
         AVLNode.prototype.adjustH = function () {
             return this.height = Math.max(this.rHeight(), this.lHeight()) + 1;
         }
-
         return AVLNode;
     })();
+
+
+    const ModNode = ( function () {
+        function AVLNode(value) {
+
+            this.lr = [null, null];
+            this.data = [value];            
+            this.height = [1];
+        }
+
+
+
+        AVLNode.prototype.lHeight = function () {
+            if(this.lr[0] === null) {
+                return 0;
+            }            
+            return this.lr[0].height[0];
+        }
+
+        AVLNode.prototype.rHeight = function () {
+            if(this.lr[1] === null) {
+                return 0;
+            }            
+            return this.lr[1].height[0];
+        }
+
+        AVLNode.prototype.bfactor = function () {
+            return (this.rHeight() - this.lHeight());
+        }
+
+        AVLNode.prototype.adjustH = function () {
+            return this.height[0] = Math.max(this.rHeight(), this.lHeight()) + 1;
+        }
+        return AVLNode;
+    })();
+
+
 
     const orderMethods = {
         preorder: function preOrder(node, callback) {
             if (!isVoid(node)) {
-                callback(node.key);
+                callback(node.data);
                 preOrder(node.left, callback);
                 preOrder(node.right, callback);
             }
-
             return;
         },
 
         inorder: function inOrder(node, callback) {
             if (!isVoid(node)) {
                 inOrder(node.left, callback);
-                callback(node.key);
+                callback(node.data);
                 inOrder(node.right, callback);
             }
-
             return;
         },
 
@@ -64,9 +96,8 @@ const AVLTree = ( function () {
             if (!isVoid(node)) {
                 postOrder(node.left, callback);
                 postOrder(node.right, callback);
-                callback(node.key);
+                callback(node.data);
             }
-
             return;
         }
     };
@@ -99,7 +130,6 @@ const AVLTree = ( function () {
             if (node.right.bfactor() < 0) {
                 node.right = rightTurn(node.right);
             }
-
             return leftTurn(node);
         }
 
@@ -110,7 +140,6 @@ const AVLTree = ( function () {
 
             return rightTurn(node);
         }
-
         return node;
     }
 
@@ -119,9 +148,9 @@ const AVLTree = ( function () {
             return null;
         }
 
-        switch (predicate(node.key)) {
+        switch (predicate(node.data)) {
             case 0:
-                return node.key;
+                return node.data;
             case -1:
                 return find(node.left, predicate);
             case 1:
@@ -130,31 +159,27 @@ const AVLTree = ( function () {
     }
 
     function addNodeFactory(compare) {
-
         function addNode(node, key) {
             if (node === null) {
                 return new TestNode(key);
             }
 
-            if (compare(key, node.key) > 0) {
+            if (compare(node.data, key) > 0) {
                 node.right = addNode(node.right, key);
             } else {
                 node.left = addNode(node.left, key);
             }            
 
             node.adjustH();
-
             return Math.abs(node.bfactor()) === 2 ? balance(node) : node;
         }
-
         return addNode;
-
     }
     return class AVLTree {        
         #root = null;
         insert;
 
-        constructor(compare = (a, b) => a > b ? 1 : 0) {
+        constructor(compare = (data, key) => data < key ? 1 : 0) {
             if (typeof compare !== 'function') {
                 throw new TypeError('Argument must be a function.');
             }

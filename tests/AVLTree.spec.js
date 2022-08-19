@@ -215,20 +215,4 @@ test.serial('Set', t => {
 });
 
 
-test.serial('OtherAvl', t => {
-	testMethods({
-		obj: new AVL(),
-		Filler: NodeArray(),
-		insert: {
-			iName: "insert"
-		}, 						
-		searchMethod: {
-			fName: "find",
-			predicate: null,
-			serchValue: SEARCH_ELEMENT,
-			searchResultHandler: ({key}) => key,
-		}		
-	}, t);
-})
-
 test.todo("Test AVLTree.prototype.remove()");

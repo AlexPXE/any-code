@@ -6,19 +6,144 @@ import { isVoid } from '../src/js/utility/utility.js';
 import test from 'ava';
 
 const INSERT_SPEED_TEST_TIME = 9;
-const AMOUNT_OF_ELEMENTS = 10_000_000;
-const SEARCH_ELEMENT = 9_333_123;
+const AMOUNT_OF_ELEMENTS = 1_000_000;
+const SEARCH_NUMBER = 9_333_123;
+
+
 
 //callback for find method in AVLTree.
 const predicateF = k => {
-	if(SEARCH_ELEMENT === k) {
+	if(SEARCH_NUMBER === k) {
 		return 0;
 	}
-	if(SEARCH_ELEMENT < k) {
+	if(SEARCH_NUMBER < k) {
 		return -1;
 	}
 	return 1;
 };
+
+const strGen = (() => {
+	const alphabet = "abcdefghijklmnopqrstuvwxyz123456789";
+	return () => {
+		let str = "";
+		for(let i = 0; i < 10; i++) {
+			str += alphabet[Math.floor(Math.random() * alphabet.length)];
+		}		
+		return str;
+	};
+})();
+
+test.serial("Test AVLTree", t => {
+
+	testMethods({
+		obj: new AVLTree((d, key) => {
+			if(key > d) {
+				return 1;
+			}
+			return 0;
+		}),
+		Filler: strGen,
+		insert: {
+			iName: "insert"
+		}, 						
+		searchMethod: {
+			fName: "find",
+			predicate: key => {
+				const str = key.match(/^\w\w/)[0];
+				if(str === 'ab') {
+					console.log(key);
+					return 0;
+				}
+				if(str > 'ab') {
+					return -1;
+				}
+				return 1;
+			},							
+			serchValue: null,
+			expectedResult: 'ab',
+			searchResultHandler: res => res && res.match(/^\w\w/)[0],
+		},		
+	}, t);
+});
+
+test.serial("Test Array", t => {
+
+	testMethods({
+		obj: [],
+		Filler: strGen,
+		insert: {
+			iName: "push"
+		}, 						
+		searchMethod: {
+			fName: "find",
+			predicate: key => key === 'abstd2dax4',
+			searchResultHandler: res => res,
+			serchValue: null,
+			expectedResult: 'abstd2dax4',
+		},
+	}, t);
+});
+
+test.serial('Map', t => {
+	testMethods({
+		obj: {
+			map: new Map(),
+			node: strGen,
+			insert: function () {
+				this.map.set( this.node(), this.node() );
+			},
+
+			find: function(key) {
+				return this.map.get(key);
+			}			
+		},
+		insert: {
+			iName: "insert",			
+		}, 						
+		searchMethod: {
+			fName: "find",
+			predicate: null,
+			serchValue: 'abstd2dax4',
+			searchResultHandler: res => res,			
+			expectedResult: 'abstd2dax4'
+		}		
+	}, t);
+});
+
+
+test.serial('Set', t => {
+	testMethods({
+		obj: {
+			set: new Set(),
+			node: strGen,
+			insert: function () {
+				this.set.add(this.node());
+			},
+			find: function (key) {
+				for(let k of this.set) {
+					if(k === key) {
+						return k;
+					}
+				}
+				return null;
+			}
+		},
+		insert: {
+			iName: "insert",			
+		}, 						
+		searchMethod: {
+			fName: "find",
+			predicate: null,
+			serchValue: 'abstd2dax4',
+			searchResultHandler: res => res,
+			expectedResult: 'abstd2dax4'
+		}		
+	}, t);
+});
+
+test.todo("Test AVLTree.prototype.remove()");
+
+
 
 function TestNode(value) {
 	this.key = value;
@@ -27,22 +152,11 @@ function TestNode(value) {
 	this.height = 1;
 }
 
-function NodeArray(limit = AMOUNT_OF_ELEMENTS) {
-	const arr = [];
-	for(let i = 0; i < limit; i++) {
-		arr.push(new TestNode(i));
-	}
-	return key => arr[key];
-}
-
-
 const NodeFabric = (NodeClass) => {
 	return val => {
 		return new NodeClass(val);
 	};
 };
-
-
 
 function testMethods({
 	obj, 									//test object
@@ -62,7 +176,7 @@ function testMethods({
 		fName = "find",								//name of find method
 		predicate,  						//callback for find method if needed. If not needed, pass null. But then you need to specify the "serchValue" parameter.
 		serchValue, 						//value for find method if needed. If not needed, pass null. But then you need to specify the "predicate" parameter.
-		expectedResult = SEARCH_ELEMENT,	//expected result of find method
+		expectedResult = SEARCH_NUMBER,	//expected result of find method
 		searchResultHandler = res => res,	//handler for search result		
 	},
 }, t) {
@@ -110,109 +224,3 @@ function testMethods({
 		expected result: ${expectedResult}
 	`);
 }
-
-test.serial("Test AVLTree", t => {
-
-	testMethods({
-		obj: new AVLTree(({key: d}, key) => {
-			if(key > d) {
-				return 1;
-			}
-			return 0;
-		}),
-
-		Filler: NodeArray(),
-		insert: {
-			iName: "insert"
-		}, 						
-		searchMethod: {
-			fName: "findByKey",				
-			predicate: ({key}) => {
-				if(key === SEARCH_ELEMENT) {
-					return 0;
-				}				
-				if(key < SEARCH_ELEMENT) {
-					return -1;
-				}
-				return 1;				
-			},											
-			serchValue: null,
-			searchResultHandler: res => res.key,
-		},		
-	}, t);
-});
-
-test.serial("Test Array", t => {
-
-	testMethods({
-		obj: [],
-		Filler: NodeFabric(TestNode),
-		insert: {
-			iName: "push"
-		}, 						
-		searchMethod: {
-			fName: "find",
-			predicate: n => n.key === SEARCH_ELEMENT,
-			searchResultHandler: res => res && res.key,
-			serchValue: null,			
-		},
-	}, t);
-});
-
-test.serial('Map', t => {
-	testMethods({
-		obj: {
-			map: new Map(),
-			node: NodeFabric(TestNode),
-			insert: function (key) {
-				this.map.set(key, this.node(key));
-			},
-
-			find: function(key) {
-				return this.map.get(key);
-			}			
-		},
-		insert: {
-			iName: "insert",			
-		}, 						
-		searchMethod: {
-			fName: "find",
-			predicate: null,
-			serchValue: SEARCH_ELEMENT,
-			searchResultHandler: res => res && res.key,			
-		}		
-	}, t);
-});
-
-
-test.serial('Set', t => {
-	testMethods({
-		obj: {
-			set: new Set(),
-			node: NodeFabric(TestNode),
-			insert: function (key) {
-				this.set.add(this.node(key));
-			},
-			find: function (key) {
-				for(let k of this.set) {
-					if(k.key === key) {
-						return k;
-					}
-				}
-				return null;
-			}
-		},
-		insert: {
-			iName: "insert",			
-		}, 						
-		searchMethod: {
-			fName: "find",
-			predicate: null,
-			serchValue: SEARCH_ELEMENT,
-			searchResultHandler: res => res && res.key,			
-		}		
-	}, t);
-});
-
-
-test.todo("Test AVLTree.prototype.remove()");

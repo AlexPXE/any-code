@@ -3,27 +3,29 @@ import {
 } from '../utility/utility.js';
 
 const AVLTree = ( function () {
-    
+
     const TestNode = ( function () {
         function AVLNode(value = null) {
             this.data = value;
             this.left = null;
             this.right = null;
             this.height = 1;
+        }        
+
+        AVLNode.prototype.rHeight = function () {
+            if(this.right === null) {
+                return 0;
+            }
+
+            return this.right.height;
         }
 
         AVLNode.prototype.lHeight = function () {
             if(this.left === null) {
                 return 0;
-            }            
-            return this.left.height;
-        }
+            }
 
-        AVLNode.prototype.rHeight = function () {
-            if(this.right === null) {
-                return 0;
-            }            
-            return this.right.height;
+            return this.left.height;
         }
 
         AVLNode.prototype.bfactor = function () {
@@ -33,13 +35,15 @@ const AVLTree = ( function () {
         AVLNode.prototype.adjustH = function () {
             return this.height = Math.max( this.rHeight(), this.lHeight() ) + 1;
         }
+
+        Object.freeze(AVLNode.prototype);        
         return AVLNode;
     })();
-
+    
 
     const orderMethods = {
         preorder: function preOrder(node, callback) {
-            if ( !isVoid(node) ) {
+            if ( node === null ) {
                 callback(node.data);
                 preOrder(node.left, callback);
                 preOrder(node.right, callback);
@@ -48,7 +52,7 @@ const AVLTree = ( function () {
         },
 
         inorder: function inOrder(node, callback) {
-            if ( !isVoid(node) ) {
+            if ( node === null ) {
                 inOrder(node.left, callback);
                 callback(node.data);
                 inOrder(node.right, callback);
@@ -57,7 +61,7 @@ const AVLTree = ( function () {
         },
 
         postorder: function postOrder(node, callback) {
-            if ( !isVoid(node) ) {
+            if ( node === null ) {
                 postOrder(node.left, callback);
                 postOrder(node.right, callback);
                 callback(node.data);
@@ -119,8 +123,27 @@ const AVLTree = ( function () {
             case 1:
                 return find(node.right, predicate);
         }
-    }    
+    }
+    
+    function removeNode(callback) {
+        return function (node, data) {
+            if (node === null) {
+                return null;
+            }
+            if (data === node.data) {
+                return callback(node);
+            }
+            if (data < node.data) {
+                node.left = removeNode(callback)(node.left, data);
+            } else {
+                node.right = removeNode(callback)(node.right, data);
+            }
+            return balance(node);
+        }
+    
 
+    }
+    [1,2,3,4].sort((a,b) => a - b);
     function addNodeFactory(compare) {
         
         function addNode(node, value) {
@@ -165,12 +188,20 @@ const AVLTree = ( function () {
             return this;
         }
 
-        findByKey(predicate = k => 0) {
+        find(predicate = k => 0) {
             return find(this.#root, predicate);
+        }
+        
+        delete(predicate) {
+            if (typeof predicate !== 'function') {
+                throw new TypeError('Argument must be a function.');
+            }
+            
+            throw Error('Not implemented')
         }
     }
 })();
 
-export {
+export {    
     AVLTree,
 }

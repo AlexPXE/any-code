@@ -6,7 +6,7 @@ import { isVoid } from '../src/js/utility/utility.js';
 import test from 'ava';
 
 const INSERT_SPEED_TEST_TIME = 9;
-const AMOUNT_OF_ELEMENTS = 1_000_000;
+const AMOUNT_OF_ELEMENTS = 5_000_000;
 const SEARCH_NUMBER = 9_333_123;
 
 
@@ -36,12 +36,7 @@ const strGen = (() => {
 test.serial("Test AVLTree", t => {
 
 	testMethods({
-		obj: new AVLTree((d, key) => {
-			if(key > d) {
-				return 1;
-			}
-			return 0;
-		}),
+		obj: new AVLTree(),
 		Filler: strGen,
 		insert: {
 			iName: "insert"

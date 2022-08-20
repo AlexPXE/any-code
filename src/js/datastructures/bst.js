@@ -143,18 +143,18 @@ const AVLTree = ( function () {
     
 
     }
-    [1,2,3,4].sort((a,b) => a - b);
+    
     function addNodeFactory(compare) {
         
-        function addNode(node, value) {
+        function addNode(value, node) {
             if (node === null) {
                 return new TestNode(value);
             }
 
-            if ( compare(node.data, value) > 0 ) {
-                node.right = addNode(node.right, value);
+            if ( compare(value, node.data) > 0 ) {
+                node.right = addNode(value, node.right);
             } else {
-                node.left = addNode(node.left, value);
+                node.left = addNode(value, node.left);
             }            
 
             node.adjustH();
@@ -166,7 +166,7 @@ const AVLTree = ( function () {
         #root = null;        
         insert;
 
-        constructor(compare = (data, value) => data < value ? 1 : 0) {
+        constructor(compare = (value, data) => value > data ? 1 : 0) {
             if (typeof compare !== 'function') {
                 throw new TypeError('Argument must be a function.');
             }
@@ -175,7 +175,7 @@ const AVLTree = ( function () {
                 const addNode = addNodeFactory(compare);
 
                 return function (value) {
-                    this.#root = addNode(this.#root, value);
+                    this.#root = addNode(value, this.#root);
                     return this;
                 }
             })();

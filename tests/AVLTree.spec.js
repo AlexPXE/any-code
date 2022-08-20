@@ -6,7 +6,7 @@ import { isVoid } from '../src/js/utility/utility.js';
 import test from 'ava';
 
 const INSERT_SPEED_TEST_TIME = 9;
-const AMOUNT_OF_ELEMENTS = 5_000_000;
+const AMOUNT_OF_ELEMENTS = 10_000_000;
 const SEARCH_NUMBER = 9_333_123;
 
 

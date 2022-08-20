@@ -38,8 +38,7 @@ const AVLTree = ( function () {
 
         Object.freeze(AVLNode.prototype);        
         return AVLNode;
-    })();
-    
+    })();    
 
     const orderMethods = {
         preorder: function preOrder(node, callback) {
@@ -140,8 +139,6 @@ const AVLTree = ( function () {
             }
             return balance(node);
         }
-    
-
     }
     
     function addNodeFactory(compare) {

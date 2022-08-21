@@ -42,30 +42,32 @@ const AVLTree = ( function () {
 
     const orderMethods = {
         preorder: function preOrder(node, callback) {
-            if ( node === null ) {
+
+            if(node !== null) {
                 callback(node.data);
-                preOrder(node.left, callback);
-                preOrder(node.right, callback);
-            }
-            return;
+                orderMethods.preorder(node.left, callback);
+                orderMethods.preorder(node.right, callback);
+            }           
+            
+            return null;
         },
 
         inorder: function inOrder(node, callback) {
-            if ( node === null ) {
+            if ( node !== null ) {
                 inOrder(node.left, callback);
                 callback(node.data);
                 inOrder(node.right, callback);
             }
-            return;
+            return null;
         },
 
         postorder: function postOrder(node, callback) {
-            if ( node === null ) {
+            if ( node !== null ) {
                 postOrder(node.left, callback);
                 postOrder(node.right, callback);
                 callback(node.data);
             }
-            return;
+            return null;
         }
     };
 
@@ -92,53 +94,85 @@ const AVLTree = ( function () {
     }
 
     function balance(node) {        
+        node.adjustH();
 
-        if ( node.bfactor() > 1 ) {
-            if (node.right.bfactor() < 0) {
-                node.right = rightTurn(node.right);
-            }
-            return leftTurn(node);
+        switch (node.bfactor()) {
+            case 2:
+                if (node.right.bfactor() < 0) {
+                    node.right = rightTurn(node.right);
+                }
+                return leftTurn(node);
+            case -2:
+                if (node.left.bfactor() > 0) {
+                    node.left = leftTurn(node.left);
+                }
+                return rightTurn(node);
+            default:
+                return node;
         }
-
-        if ( node.bfactor() < -1 ) {
-            if (node.left.bfactor() > 0) {
-                node.left = leftTurn(node.left);
-            }
-            return rightTurn(node);
-        }
-        return node;
     }
 
-    function find(node, predicate) {
-        if (node === null) {
+    function findNode(root, predicate) {
+        if (root === null) {
             return null;
         }
 
-        switch ( predicate(node.data) ) {
+        switch ( predicate(root.data) ) {
             case 0:
-                return node.data;
+                return root;
             case -1:
-                return find(node.left, predicate);
+                return findNode(root.left, predicate);
             case 1:
-                return find(node.right, predicate);
+                return findNode(root.right, predicate);
         }
-    }
+    }  
     
-    function removeNode(callback) {
-        return function (node, data) {
-            if (node === null) {
-                return null;
+
+    function findMin(root) {        
+        return root.left === null ? root : findMin(root.left);
+    }
+
+    function removeMinHelper(root) {
+        return function removeMin(node) {
+            if(node.left === null) {
+                console.log('Halper', node.data);
+                root.data = node.data;
+                return node.right;
             }
-            if (data === node.data) {
-                return callback(node);
-            }
-            if (data < node.data) {
-                node.left = removeNode(callback)(node.left, data);
-            } else {
-                node.right = removeNode(callback)(node.right, data);
-            }
+
+            node.left = removeMin(node.left);
             return balance(node);
         }
+    }    
+
+    function removeNode(root, callback) {
+        if(root === null) {
+            return null;
+        }
+
+        const targetFlag = callback(root.data);
+
+        if(targetFlag < 0) {           
+            root.left = removeNode(root.left, callback);
+
+        } else if(targetFlag > 0) {            
+            root.right = removeNode(root.right, callback);
+
+        } else {            
+            const {left, right} = root;
+                
+            if(left === null) {
+                return right;
+            }
+
+            if(right === null) {
+                return left;
+            }
+
+            root.right = removeMinHelper(root)(root.right);
+        }
+
+        return balance(root);
     }
     
     function addNodeFactory(compare) {
@@ -150,12 +184,12 @@ const AVLTree = ( function () {
 
             if ( compare(value, node.data) > 0 ) {
                 node.right = addNode(value, node.right);
+                
             } else {
                 node.left = addNode(value, node.left);
-            }            
-
-            node.adjustH();
-            return Math.abs( node.bfactor() ) === 2 ? balance(node) : node;
+            }
+            
+            return balance( node );
         }
         return addNode;
     }
@@ -163,7 +197,7 @@ const AVLTree = ( function () {
         #root = null;        
         insert;
 
-        constructor(compare = (value, data) => value > data ? 1 : 0) {
+        constructor(compare = (value, data) => value > data ? 1 : -1) {
             if (typeof compare !== 'function') {
                 throw new TypeError('Argument must be a function.');
             }
@@ -185,20 +219,44 @@ const AVLTree = ( function () {
             return this;
         }
 
-        find(predicate = k => 0) {
-            return find(this.#root, predicate);
+        reduce(callback, initialValue) {
+            let cb;
+            let acc;
+
+            const initialCb = data => {
+                cb = callback;
+                return data;
+            };
+
+            if(arguments.length === 1) {
+                cb = initialCb;
+            } else {
+                cb = callback;
+                acc = initialValue;
+            }            
+
+            this.traversal(data => {
+                acc = cb(acc, data);
+            });
+
+            return initialValue;
+        }
+
+        find(predicate) {
+            const result = findNode(this.#root, predicate);
+            return result === null ? result : result.data;
         }
         
         delete(predicate) {
-            if (typeof predicate !== 'function') {
-                throw new TypeError('Argument must be a function.');
-            }
-            
-            throw Error('Not implemented')
+            this.#root = removeNode(this.#root, predicate);
+            return this;
         }
     }
 })();
 
+
 export {    
     AVLTree,
 }
+
+

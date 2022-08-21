@@ -33,7 +33,7 @@ const strGen = (() => {
 	};
 })();
 
-test.serial("Test AVLTree", t => {
+test.skip("Test AVLTree (iswert() and find() methods.)", t => {
 
 	testMethods({
 		obj: new AVLTree(),
@@ -61,7 +61,7 @@ test.serial("Test AVLTree", t => {
 	}, t);
 });
 
-test.serial("Test Array", t => {
+test.skip("Test Array (push() and find() methods.)", t => {
 
 	testMethods({
 		obj: [],
@@ -79,7 +79,7 @@ test.serial("Test Array", t => {
 	}, t);
 });
 
-test.serial('Map', t => {
+test.skip('Test Map (set() and get() methods.)', t => {
 	testMethods({
 		obj: {
 			map: new Map(),
@@ -106,7 +106,7 @@ test.serial('Map', t => {
 });
 
 
-test.serial('Set', t => {
+test.skip('Test Set (add() method and sech value)', t => {
 	testMethods({
 		obj: {
 			set: new Set(),
@@ -136,7 +136,33 @@ test.serial('Set', t => {
 	}, t);
 });
 
-test.todo("Test AVLTree.prototype.remove()");
+test.serial("Test AVLTree (remove, reduce  methods)", t => {
+	const tree = new AVLTree();
+	const delValue = 9;
+
+	const delCb = data => {
+		if (delValue < data) {
+			return -1;
+		}
+		if (delValue > data) {
+			return 1;
+		}
+		return 0;
+	};
+
+	const reducerCb = (acc, value) => {
+		acc.push(value);
+		return acc;
+	};
+	
+	for(let i = 0; i < 0; i++) {
+		tree.insert(i);
+	}
+	t.log(`Before removal ${delValue}: ${tree.reduce(reducerCb, [])}`);	
+	tree.delete(delCb);
+	t.log(`After removal ${delValue}: ${tree.reduce(reducerCb, [])}`);
+
+});
 
 
 
@@ -147,15 +173,15 @@ function TestNode(value) {
 	this.height = 1;
 }
 
-const NodeFabric = (NodeClass) => {
+function NodeFabric(NodeClass) {
 	return val => {
 		return new NodeClass(val);
 	};
 };
 
 function testMethods({
-	obj, 									//test object
-	Filler = null,							//function that fills the tree (or array) with random values. If not needed, pass null, then will be used numers from 0 to AMOUNT_OF_ELEMENTS.
+	obj, 											//test object
+	Filler = null,									//function that fills the tree (or array) with random values. If not needed, pass null, then will be used numers from 0 to AMOUNT_OF_ELEMENTS.
 	amountOfElements: {
 		from,
 		to,
@@ -164,15 +190,15 @@ function testMethods({
 		to: AMOUNT_OF_ELEMENTS
 	},
 	insert: {
-		iName = "insert", 											//name of insert method
-		insertTimeLimit = INSERT_SPEED_TEST_TIME 		//time limit (in seconds) for insert speed test.
+		iName = "insert", 							//name of insert method
+		insertTimeLimit = INSERT_SPEED_TEST_TIME 	//time limit (in seconds) for insert speed test.
 	}, 						
 	searchMethod: {
 		fName = "find",								//name of find method
-		predicate,  						//callback for find method if needed. If not needed, pass null. But then you need to specify the "serchValue" parameter.
-		serchValue, 						//value for find method if needed. If not needed, pass null. But then you need to specify the "predicate" parameter.
-		expectedResult = SEARCH_NUMBER,	//expected result of find method
-		searchResultHandler = res => res,	//handler for search result		
+		predicate,  								//callback for find method if needed. If not needed, pass null. But then you need to specify the "serchValue" parameter.
+		serchValue, 								//value for find method if needed. If not needed, pass null. But then you need to specify the "predicate" parameter.
+		expectedResult = SEARCH_NUMBER,				//expected result of find method
+		searchResultHandler = res => res,			//handler for search result		
 	},
 }, t) {
 

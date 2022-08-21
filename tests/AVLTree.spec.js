@@ -138,29 +138,40 @@ test.skip('Test Set (add() method and sech value)', t => {
 
 test.serial("Test AVLTree (remove, reduce  methods)", t => {
 	const tree = new AVLTree();
-	const delValue = 9;
+	
+	const ammount = 30;
+	const existingValue = ~~(ammount / 2);	
+	const nonExistentValue = ammount;
 
-	const delCb = data => {
-		if (delValue < data) {
-			return -1;
-		}
-		if (delValue > data) {
-			return 1;
-		}
-		return 0;
-	};
+	function delCbFactory(value) {
+		return data => {
+			if (value < data) {
+				return -1;
+			}
+			if (value > data) {
+				return 1;
+			}
+			return 0;
+		};
+	}	
 
 	const reducerCb = (acc, value) => {
 		acc.push(value);
 		return acc;
 	};
+
+	t.falsy( tree.delete( delCbFactory(nonExistentValue) ),  `Attempt to delete value from empty tree.`);
 	
-	for(let i = 0; i < 0; i++) {
+	for(let i = 0; i < ammount; i++) {
 		tree.insert(i);
 	}
-	t.log(`Before removal ${delValue}: ${tree.reduce(reducerCb, [])}`);	
-	tree.delete(delCb);
-	t.log(`After removal ${delValue}: ${tree.reduce(reducerCb, [])}`);
+
+	t.log     (`Before removal ${existingValue}: [${tree.reduce(reducerCb, [])}]`);	
+	t.falsy   ( tree.delete( delCbFactory(nonExistentValue) ),        `Attempt to delete a non-existent value: ${ nonExistentValue }`);
+	t.truthy  ( tree.delete( delCbFactory(existingValue) ),           `Attempt to delete an existing value: ${ existingValue }`);
+	t.truthy  ( tree.delete( delCbFactory(0) ),                       `Attempt to remove the number '0'`);
+	t.truthy  ( tree.delete( delCbFactory(29) ),                      `Attempt to remove the number '29'`);
+	t.log     (`After removal ${existingValue}: [${tree.reduce(reducerCb, [])}]`);
 
 });
 

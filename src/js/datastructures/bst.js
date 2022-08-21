@@ -134,9 +134,9 @@ const AVLTree = ( function () {
 
     function removeMinHelper(root) {
         return function removeMin(node) {
-            if(node.left === null) {
-                console.log('Halper', node.data);
+            if(node.left === null) {                
                 root.data = node.data;
+
                 return node.right;
             }
 
@@ -145,7 +145,7 @@ const AVLTree = ( function () {
         }
     }    
 
-    function removeNode(root, callback) {
+    function removeNode(root, callback, success = {status: false}) {
         if(root === null) {
             return null;
         }
@@ -153,14 +153,15 @@ const AVLTree = ( function () {
         const targetFlag = callback(root.data);
 
         if(targetFlag < 0) {           
-            root.left = removeNode(root.left, callback);
+            root.left = removeNode(root.left, callback, success);
 
         } else if(targetFlag > 0) {            
-            root.right = removeNode(root.right, callback);
+            root.right = removeNode(root.right, callback, success);
 
         } else {            
             const {left, right} = root;
-                
+            success.status = true;
+
             if(left === null) {
                 return right;
             }
@@ -168,7 +169,7 @@ const AVLTree = ( function () {
             if(right === null) {
                 return left;
             }
-
+            
             root.right = removeMinHelper(root)(root.right);
         }
 
@@ -248,8 +249,10 @@ const AVLTree = ( function () {
         }
         
         delete(predicate) {
-            this.#root = removeNode(this.#root, predicate);
-            return this;
+            const success = {status: false};
+            this.#root = removeNode(this.#root, predicate, success);
+
+            return success.status;
         }
     }
 })();

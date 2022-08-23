@@ -1,8 +1,5 @@
-import {
-    isVoid
-} from '../utility/utility.js';
 
-const AVLTree = ( function () {
+const AVLTree = ( function() {
 
     const TestNode = ( function () {
         function AVLNode(value = null) {
@@ -125,8 +122,7 @@ const AVLTree = ( function () {
             case 1:
                 return findNode(root.right, predicate);
         }
-    }  
-    
+    }
 
     function findMin(root) {        
         return root.left === null ? root : findMin(root.left);
@@ -224,7 +220,7 @@ const AVLTree = ( function () {
             let cb;
             let acc;
 
-            const initialCb = data => {
+            const initialCb = (acc, data) => {
                 cb = callback;
                 return data;
             };
@@ -236,11 +232,11 @@ const AVLTree = ( function () {
                 acc = initialValue;
             }            
 
-            this.traversal(data => {
-                acc = cb(acc, data);
+            this.traversal(data => {                
+                acc = cb(acc, data);                
             });
 
-            return initialValue;
+            return acc;
         }
 
         find(predicate) {

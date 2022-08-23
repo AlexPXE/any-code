@@ -142,6 +142,7 @@ test.serial("Test AVLTree (remove, reduce  methods)", t => {
 	const ammount = 30;
 	const existingValue = ~~(ammount / 2);	
 	const nonExistentValue = ammount;
+	const initialArr = [];
 
 	function delCbFactory(value) {
 		return data => {
@@ -156,22 +157,30 @@ test.serial("Test AVLTree (remove, reduce  methods)", t => {
 	}	
 
 	const reducerCb = (acc, value) => {
-		acc.push(value);
+		acc.push(value);		
 		return acc;
+	};
+
+	const reducerCbSum = (acc, value) => {
+		return acc + value;
 	};
 
 	t.falsy( tree.delete( delCbFactory(nonExistentValue) ),  `Attempt to delete value from empty tree.`);
 	
-	for(let i = 0; i < ammount; i++) {
+	for(let i = 1; i < ammount; i++) {
+		initialArr.push(i);
 		tree.insert(i);
-	}
-
-	t.log     (`Before removal ${existingValue}: [${tree.reduce(reducerCb, [])}]`);	
-	t.falsy   ( tree.delete( delCbFactory(nonExistentValue) ),        `Attempt to delete a non-existent value: ${ nonExistentValue }`);
-	t.truthy  ( tree.delete( delCbFactory(existingValue) ),           `Attempt to delete an existing value: ${ existingValue }`);
-	t.truthy  ( tree.delete( delCbFactory(0) ),                       `Attempt to remove the number '0'`);
-	t.truthy  ( tree.delete( delCbFactory(29) ),                      `Attempt to remove the number '29'`);
-	t.log     (`After removal ${existingValue}: [${tree.reduce(reducerCb, [])}]`);
+	}		
+	
+	t.log          (`Before removal ${existingValue}: [${initialArr}]`);
+	t.is           (tree.reduce(reducerCbSum), initialArr.reduce(reducerCbSum),    `The sum of all array elements must be equal to the sum of all tree elements`);
+	t.deepEqual    ( tree.reduce(reducerCb, []), initialArr,                       `Method AVLTree#reduce() must return identical to the original array: [${initialArr}]`);
+	t.falsy        ( tree.delete( delCbFactory(nonExistentValue) ),                `Attempt to delete a non-existent value: ${ nonExistentValue }`);
+	t.truthy       ( tree.delete( delCbFactory(existingValue) ),                   `Attempt to delete an existing value: ${ existingValue }`);
+	t.truthy       ( tree.delete( delCbFactory(1) ),                               `Attempt to remove the number '0'`);
+	t.truthy  	   ( tree.delete( delCbFactory(29) ),                              `Attempt to remove the number '29'`);
+	t.notDeepEqual ( tree.reduce(reducerCb, []), initialArr,                       `The result must not be the same as the original array: [${initialArr}]`);	
+	t.log          (`After removal ${existingValue}: [${tree.reduce(reducerCb, [])}]`);
 
 });
 

@@ -38,31 +38,31 @@ const AVLTree = ( function() {
     })();    
 
     const orderMethods = {
-        preorder: function preOrder(node, callback) {
+        preorder: function preOrder(node, callbackFn) {
 
             if(node !== null) {
-                callback(node.data);
-                orderMethods.preorder(node.left, callback);
-                orderMethods.preorder(node.right, callback);
+                callbackFn(node.data);
+                orderMethods.preorder(node.left, callbackFn);
+                orderMethods.preorder(node.right, callbackFn);
             }           
             
             return null;
         },
 
-        inorder: function inOrder(node, callback) {
+        inorder: function inOrder(node, callbackFn) {
             if ( node !== null ) {
-                inOrder(node.left, callback);
-                callback(node.data);
-                inOrder(node.right, callback);
+                inOrder(node.left, callbackFn);
+                callbackFn(node.data);
+                inOrder(node.right, callbackFn);
             }
             return null;
         },
 
-        postorder: function postOrder(node, callback) {
+        postorder: function postOrder(node, callbackFn) {
             if ( node !== null ) {
-                postOrder(node.left, callback);
-                postOrder(node.right, callback);
-                callback(node.data);
+                postOrder(node.left, callbackFn);
+                postOrder(node.right, callbackFn);
+                callbackFn(node.data);
             }
             return null;
         }
@@ -93,7 +93,7 @@ const AVLTree = ( function() {
     function balance(node) {        
         node.adjustH();
 
-        switch (node.bfactor()) {
+        switch ( node.bfactor() ) {
             case 2:
                 if (node.right.bfactor() < 0) {
                     node.right = rightTurn(node.right);
@@ -109,18 +109,18 @@ const AVLTree = ( function() {
         }
     }
 
-    function findNode(root, predicate) {
+    function findNode(root, callbackFn) {
         if (root === null) {
             return null;
         }
 
-        switch ( predicate(root.data) ) {
+        switch ( callbackFn(root.data) ) {
             case 0:
                 return root;
             case -1:
-                return findNode(root.left, predicate);
+                return findNode(root.left, callbackFn);
             case 1:
-                return findNode(root.right, predicate);
+                return findNode(root.right, callbackFn);
         }
     }
 
@@ -141,18 +141,18 @@ const AVLTree = ( function() {
         }
     }    
 
-    function removeNode(root, callback, success = {status: false}) {
+    function removeNode(root, callbackFn, success = {status: false}) {
         if(root === null) {
             return null;
         }
 
-        const targetFlag = callback(root.data);
+        const targetFlag = callbackFn(root.data);
 
         if(targetFlag < 0) {           
-            root.left = removeNode(root.left, callback, success);
+            root.left = removeNode(root.left, callbackFn, success);
 
         } else if(targetFlag > 0) {            
-            root.right = removeNode(root.right, callback, success);
+            root.right = removeNode(root.right, callbackFn, success);
 
         } else {            
             const {left, right} = root;
@@ -209,26 +209,26 @@ const AVLTree = ( function() {
             })();
         }       
 
-        traversal(callback, order = 'inorder') {
+        traversal(callbackFn, order = 'inorder') {
             order = order.replace(/[^a-z]/gi, '').toLowerCase();
-
-            orderMethods[order](this.#root, callback);
+            
+            orderMethods[order](this.#root, callbackFn);
             return this;
         }
 
-        reduce(callback, initialValue) {
+        reduce(callbackFn, initialValue) {
             let cb;
             let acc;
 
             const initialCb = (acc, data) => {
-                cb = callback;
+                cb = callbackFn;
                 return data;
             };
 
             if(arguments.length === 1) {
                 cb = initialCb;
             } else {
-                cb = callback;
+                cb = callbackFn;
                 acc = initialValue;
             }            
 
@@ -239,14 +239,14 @@ const AVLTree = ( function() {
             return acc;
         }
 
-        find(predicate) {
-            const result = findNode(this.#root, predicate);
+        find(compareFn) {
+            const result = findNode(this.#root, compareFn);
             return result === null ? result : result.data;
         }
         
-        delete(predicate) {
+        delete(compareFn) {
             const success = {status: false};
-            this.#root = removeNode(this.#root, predicate, success);
+            this.#root = removeNode(this.#root, compareFn, success);
 
             return success.status;
         }

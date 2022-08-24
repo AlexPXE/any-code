@@ -105,7 +105,6 @@ test.skip('Test Map (set() and get() methods.)', t => {
 	}, t);
 });
 
-
 test.skip('Test Set (add() method and sech value)', t => {
 	testMethods({
 		obj: {
@@ -156,7 +155,7 @@ test.serial("Test AVLTree (remove, reduce  methods)", t => {
 		};
 	}	
 
-	const reducerCb = (acc, value) => {
+	const reduceCb = (acc, value) => {
 		acc.push(value);		
 		return acc;
 	};
@@ -173,18 +172,16 @@ test.serial("Test AVLTree (remove, reduce  methods)", t => {
 	}		
 	
 	t.log          (`Before removal ${existingValue}: [${initialArr}]`);
-	t.is           (tree.reduce(reducerCbSum), initialArr.reduce(reducerCbSum),    `The sum of all array elements must be equal to the sum of all tree elements`);
-	t.deepEqual    ( tree.reduce(reducerCb, []), initialArr,                       `Method AVLTree#reduce() must return identical to the original array: [${initialArr}]`);
+	t.is           ( tree.reduce(reducerCbSum), initialArr.reduce(reducerCbSum),   `The sum of all array elements must be equal to the sum of all tree elements`);
+	t.deepEqual    ( tree.reduce(reduceCb, []), initialArr,                        `Method AVLTree#reduce() must return identical to the original array: [${initialArr}]`);
 	t.falsy        ( tree.delete( delCbFactory(nonExistentValue) ),                `Attempt to delete a non-existent value: ${ nonExistentValue }`);
 	t.truthy       ( tree.delete( delCbFactory(existingValue) ),                   `Attempt to delete an existing value: ${ existingValue }`);
 	t.truthy       ( tree.delete( delCbFactory(1) ),                               `Attempt to remove the number '0'`);
 	t.truthy  	   ( tree.delete( delCbFactory(29) ),                              `Attempt to remove the number '29'`);
-	t.notDeepEqual ( tree.reduce(reducerCb, []), initialArr,                       `The result must not be the same as the original array: [${initialArr}]`);	
-	t.log          (`After removal ${existingValue}: [${tree.reduce(reducerCb, [])}]`);
+	t.notDeepEqual ( tree.reduce(reduceCb, []), initialArr,                        `The result must not be the same as the original array: [${initialArr}]`);	
+	t.log          (`After removal ${existingValue}: [${tree.reduce(reducerCbSum, [])}]`);
 
 });
-
-
 
 function TestNode(value) {
 	this.key = value;

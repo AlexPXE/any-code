@@ -1,6 +1,3 @@
-
-
-
 const DLList = ( function () {
     class Node {
         constructor(value = null) {
@@ -163,7 +160,7 @@ const DLList = ( function () {
             const node = this.#findByindex(index);
             return node === null ? node : node.data;
         }
-        
+
         push(value) {
 
             this.#tail = insertAfter(this.#tail, value);

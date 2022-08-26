@@ -34,6 +34,7 @@ test.serial('Test DLList', t => {
     t.is       ( list.find(v => v === 4_599_888), null );
     t.is       ( list.deleteByValue(4_599_887), true );
     t.is       ( list.find(v => v === 4_599_887), null );
+    t.is       ( list.getLength(), 9_999_998 );
 
    list.destroy()
        .push(1)

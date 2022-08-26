@@ -4,12 +4,6 @@
  * Heaps
  * @module heaps
  */
-
-
-/**
- * 
- */
-
 class MaxBinHeap {  
       
     /**
@@ -116,7 +110,7 @@ class MaxBinHeap {
     }   
 
     /**     
-     * A method that adds element a new element with the given value to the heap. 
+     * A method that adds a new element with the given value to the heap. 
      Does not violate the main heap property.
      * 
      * @param {any} value Value to be inserted.

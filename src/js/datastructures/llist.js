@@ -1,185 +1,268 @@
-class Node {
-    constructor(data) {
-        this.value = data;
-        this.next = null;
-        this.prev = null;
-    }
-}
-class Llist {
-    constructor(...args) {
-        let head = null;
-        let tail = null;
-        this.length = 0;
-        
-        Object.defineProperties(this, {
-            head: {
-                get: () => head,
 
-                set: node => {
-                    if( node === null || (node instanceof Node) ) {
-                        head = node;                        
-                    } else {
-                        throw new Error('Invalid node');
-                    }   
-                }                
-            },
 
-            tail: {
-                get: () => tail,
 
-                set: node => {                    
-                    if( node === null || (node instanceof Node) ) {
-                        tail = node;                        
-                    } else {
-                        throw new Error('Invalid node');                                           
-                    }
-                    
-                }
-            },               
-        });
-        
-
-        if(args.length > 0) {
-            this.push(...args);
-        }       
+const DLList = ( function () {
+    class Node {
+        constructor(value = null) {
+            this.data = value;
+            this.next = null;
+            this.prev = null;
+        }
     }
 
-    *[Symbol.iterator]() {
-        let node = this.head;
+    function findNode(predicate, node) {
         while(node !== null) {
-            yield node.value;
+            if( predicate(node.data) ) {
+                return node;
+            }
+
             node = node.next;
         }
+
+        return node;
     }
 
-    swap() {
-        throw new Error('Not implemented');
-    }
+    const findByInd = {
+        right: function(start, end) {
+            return function goRight(node) {
 
-    delete() {
-        throw new Error('Not implemented');
-    }
+                while(node !== null) {
+                    if(start === end) {
+                        return node;
+                    }
+                    start++;
+                    node = node.next;
+                }
 
-    shift() {
+                return node;
+            };
+        },
 
-        if(this.length == 0) {
-            return null;
-        } else {                  
-            let {head} = this;
-            const {next} = head;
-            
-            if(next) {                                                
-                next.prev = null;                
-                this.head = next;
-            } else {                                
-                this.tail = null;
-                this.head = null;                
-            }
-            
-            this.length--;
-            return head.value;
-        }   
-    }
+        left: function(start, end) {
+            return function goLeft(node) {
 
-    unshift(...args) {
+                while(node !== null) {
+                    if(start === end) {
+                        return node;
+                    }
+                    start--;
+                    node = node.prev;
+                }
 
-        if (args.length == 0) {
-            throw new Error('No arguments');
+                return node;
+            };            
         }
+    };    
 
-        args.forEach((arg) => {            
-            let {head} = this;
-
-            const node = new Node(arg);
-
-            if (!head) {
-                this.head = node;
-                this.tail = node;
-            } else {
-                node.next = head;
-                head.prev = node;
-                this.head = node;
-            }           
-
-            ++this.length;
-        });
-
-
-        return this.length;
-    }
-
-    push(...args) {
-
-        if (args.length == 0) {
-            throw new Error('No arguments');
-        }       
-
-        args.forEach(arg => {     
-
-            let {tail} = this;
-            const node = new Node(arg);
-            //console.log('push', arg);
-            
-            if (tail) {
-                tail.next = node;
-                node.prev = tail;
-                this.tail = node;                
-            } else {
-                this.head = node;
-                this.tail = node;
-            }          
-
-            ++this.length;
-        });        
+    function insertBefore(node, value) {        
+        const newNode = new Node(value);
         
-        return this.length;
+        if(node !== null) {
+            newNode.next = node;
+            node.prev = newNode;
+        }        
+        return newNode;
     }
 
-    pop() {
+    function insertAfter(node, value) {
+        const newNode = new Node(value);
 
-        if(this.length == 0) {
-            return null;
+        if(node !== null) {
+            node.next = newNode;
+            newNode.prev = node;
         }
-
-        const tail = this.tail;
-        const {prev} = tail;
-
-        if(prev) {
-            prev.next = null;
-            this.tail = prev;
-        } else {
-            this.head = null;
-            this.tail = null;
-        }
-
-        //console.log('pop', tail.value);
-        this.length--;
-        return tail.value;
+        return newNode;
     }
 
-    showList() {
-        let {head:temp} = this;
-        let arr = [];
+    const traversal = {
+        left: function fromTheHead(callbackFn, node) {
+            if(node === null) {
+                return null;
+            }
+            callbackFn(node.data);
 
-        while(temp) {
-            arr.push(temp.value);
-            temp = temp.next;
+            return fromTheHead(callbackFn, node.next);
+        },
+
+        right: function fromTheTail(callbackFn, node) {
+            if(node === null) {
+                return null;
+            }
+            callbackFn(node.data);
+
+            return fromTheTail(callbackFn, node.prev)
+        }
+    };
+    
+    return class Llist {
+        #head = null;
+        #tail = null;
+        #length = 0;
+
+        getLength() {
+            return this.#length;
         }
 
-        return arr;
+        find(predicate) {
+            const foundNode = findNode(predicate, this.#head);
+            return foundNode === null ? foundNode : foundNode.data; 
+        }
+
+        reduce(callbacFn, initialValue) {
+            if(this.#length === 0) {
+                return initialValue;
+            }
+
+            let acc;
+            let startNode;
+
+            if(arguments.length === 1) {
+                acc = this.#head.data;
+                startNode = this.#head.next;
+                
+            } else {
+                acc = initialValue;
+                startNode = this.#head;
+            }
+
+            traversal.left(value => {
+                acc = callbacFn(acc, value);
+            }, startNode);
+
+            return acc;
+        }
+
+        swap(predicateA, predicateB) {
+            const nodeA = findNode(predicateA, this.#head);
+            const nodeB = findNode(predicateB, this.#head);
+
+            if(nodeA === null || nodeB === null) {
+                return false;
+            }
+
+            const temp = nodeA.data;
+            nodeA.data = nodeB.data;
+            nodeB.data = temp;
+
+            return true;
+        }
+
+        delete(predicate) {
+            return this.#removeNode( findNode(predicate, this.#head) );
+        }
+
+        delByIndex(index) {            
+            return this.#removeNode( this.#findByindex(index) );
+        }
+
+        deleteByValue(value) {
+            return this.delete(v => value === v);
+        }
+
+        getByIndex(index) {
+            const node = this.#findByindex(index);
+            return node === null ? node : node.data;
+        }
+        
+        push(value) {
+
+            this.#tail = insertAfter(this.#tail, value);
+            
+            if(this.#length === 0) {
+                this.#head = this.#tail;
+            }
+
+            this.#length++;
+            return this;
+        }
+
+        pop() {             
+            if(this.#length === 0) {
+                return null;
+            }
+
+            const node = this.#tail;
+
+            if(this.#length === 1) {                
+                this.#head = null;
+                this.#tail = null;
+            } else {
+                this.#tail = node.prev;
+            }
+
+            this.#length--;
+            return node.data;
+        }
+
+        unshift(value) {
+            this.#head = insertBefore(this.#head, value);
+            
+            if(this.#length === 0) {
+                this.#tail = this.#head;
+            }
+
+            this.#length++;
+            return this;
+        }
+
+        shift() {
+            if(this.#length === 0) {
+                return null;
+            }
+
+            const node = this.#head;
+
+            if(this.#length === 1) {
+                this.#head = null;
+                this.#tail = null;
+            } else {
+                this.#head = node.next;
+            }
+
+            this.#length--;
+            return node.data;
+        }
+
+        #removeNode(node) {
+            if(node === null) {
+                return false;
+            }
+
+            const {prev, next} = node;
+
+            if(prev === null) {
+                this.#head = next;
+            } else {
+                prev.next = next;
+            }
+
+            if(next === null) {
+                this.#tail = prev;
+            } else {
+                next.prev = prev;
+            }
+
+            this.#length--;
+
+            return true;
+        }
+
+        destroy() {
+            this.#head = null;
+            this.#tail = null;
+            this.#length = 0;
+
+            return this;
+        }
+
+        #findByindex(index) {
+            if(Math.floor(this.#length / 2) > index) {                
+               return findByInd.right(0, index)(this.#head);
+            } else {                
+                return findByInd.left(this.#length - 1, index)(this.#tail);
+            }
+        }
     }
+})();
 
-    showListRev() {
-        let {tail:temp} = this;
-        let arr = [];
-
-        while(temp) {
-            arr.push(temp.value);
-            temp = temp.prev;
-        }
-
-        return arr;
-    }    
-}
-
-export {Llist};
+export {DLList};

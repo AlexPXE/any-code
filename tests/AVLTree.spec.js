@@ -135,7 +135,7 @@ test.skip('Test Set (add() method and sech value)', t => {
 	}, t);
 });
 
-test.serial("Test AVLTree (remove, reduce  methods)", t => {
+test.skip("Test AVLTree (remove, reduce  methods)", t => {
 	const tree = new AVLTree();
 	
 	const ammount = 30;

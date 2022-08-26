@@ -39,13 +39,11 @@ const AVLTree = ( function() {
 
     const orderMethods = {
         preorder: function preOrder(node, callbackFn) {
-
             if(node !== null) {
                 callbackFn(node.data);
                 orderMethods.preorder(node.left, callbackFn);
                 orderMethods.preorder(node.right, callbackFn);
-            }           
-            
+            } 
             return null;
         },
 

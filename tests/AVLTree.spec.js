@@ -1,5 +1,5 @@
 
-import { AVLTree } from '../src/js/datastructures/bst.js';
+import { AVLTreeBuilder } from '../src/js/datastructures/bst.js';
 import { isVoid } from '../src/js/utility/utility.js';
 
 // @ts-ignore
@@ -8,6 +8,10 @@ import test from 'ava';
 const INSERT_SPEED_TEST_TIME = 9;
 const AMOUNT_OF_ELEMENTS = 10_000_000;
 const SEARCH_NUMBER = 9_333_123;
+
+const AVLtree = new AVLTreeBuilder()
+	.setCompareFn()
+	.setTreeType();
 
 
 
@@ -36,7 +40,7 @@ const strGen = (() => {
 test.skip("Test AVLTree (iswert() and find() methods.)", t => {
 
 	testMethods({
-		obj: new AVLTree(),
+		obj: AVLtree.create(),
 		Filler: strGen,
 		insert: {
 			iName: "insert"
@@ -136,7 +140,7 @@ test.skip('Test Set (add() method and sech value)', t => {
 });
 
 test.skip("Test AVLTree (remove, reduce  methods)", t => {
-	const tree = new AVLTree();
+	const tree = AVLtree.create();
 	
 	const ammount = 30;
 	const existingValue = ~~(ammount / 2);	

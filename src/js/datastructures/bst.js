@@ -1,45 +1,203 @@
 import { DLList } from "./llist.js";
 
-const AVLTreeBuilder = ( function() {
+//Default AVLTree class
+class AVLTree {
+    #root = null;    
+    #utils;
     
 
-    const nodePrototype = {
-        rHeight: function () {
-            if(this.right === null) {
-                return 0;
+    constructor(utils) {
+        this.#utils = utils;        
+    }
+
+    insert(data) {
+        this.#root = this.#utils.addNode(data, this.#root);
+        return this;
+    }
+
+    traversal(callbackFn, order = 'inorder') {
+        order = order.replace(/[^a-z]/gi, '').toLowerCase();
+
+        this.#utils[order](this.#root, callbackFn);
+        return this;
+    }
+
+    reduce(callbackFn, initialValue) {
+        let cb;
+        let acc;
+
+        if(arguments.length === 1) {
+            cb = (acc, data) => {
+                cb = callbackFn;
+                return data;
+            };
+        } else {
+            cb = callbackFn;
+            acc = initialValue;
+        }            
+
+        this.traversal(data => {                
+            acc = cb(acc, data);                
+        });
+
+        return acc;
+    }
+
+    find(key, predicateFn = data => true) {
+        return this.#utils.find(this.#root, key, predicateFn);
+    }
+
+    delete(key, predicateFn = data => true) {
+        const status = {success: false};        
+        this.#root = this.#utils.removeNode(this.#root, key, predicateFn, status);
+        
+        return status.success;
+    }
+
+    destroy() {
+        this.#root = null;
+        return this;
+    }
+}
+
+//Factory Builder
+class TreeFactoryBuilder {
+    #Utils = null;
+    #Node = null;
+    #TreeClass = null;
+
+    addTreeClass(TreeClass) {
+        this.#TreeClass = TreeClass;
+        return this;
+    }
+
+    AddNodeClass(NodeClass) {
+        this.#Node = NodeClass;
+        return this;
+    }
+
+    addUtilsClass(UtilsClass) {
+        this.#Utils = UtilsClass;
+        return this;
+    }
+
+    create() {
+        const BaseClass = this.#TreeClass;
+        const Utils = this.#Utils;
+        const Node = this.#Node;
+
+        this.#TreeClass = null;
+        this.#Utils = null;
+        this.#Node = null;
+
+        return class {
+            #utils;
+
+            constructor(fn) {
+                this.#utils = new Utils(Node, fn)
             }
-
-            return this.right.height;
-        },
-
-        lHeight: function () {
-            if(this.left === null) {
-                return 0;
+            create() {
+               return new BaseClass(this.#utils);
             }
-
-            return this.left.height;
-        },
-
-        bfactor: function () {
-            return ( this.rHeight() - this.lHeight() );
-        },
-
-        adjustH: function () {
-            return this.height = Math.max( this.rHeight(), this.lHeight() ) + 1;
-        },
-
-        getData: function () {
-            return this.data;
-        },
-
-        setData: function (value) {
-            this.data = value;
-            return this;
         }
-    };
-    
+    }
+}
 
-    function rightTurn(node) {
+const classFactory = proto => {
+    return constr => {
+        Object.assign(constr.prototype, proto)
+        
+        return extendingObj => {            /*if object then extend prototype*/
+            if(typeof extendingObj === 'object' && extendingObj !== null) {
+               Object.assign(constr.prototype, extendingObj, {
+                    super: proto,
+               });
+            }
+            Object.freeze(constr.prototype);
+
+            return constr;
+        };
+    };        
+}
+
+const AVLTreeBuilder = new TreeFactoryBuilder();
+
+//set default prototype for the Node Class
+const createAVLTreeNodeClass = classFactory({
+    rHeight: function () {
+        if(this.right === null) {
+            return 0;
+        }
+        return this.right.height;
+    },
+
+    lHeight: function () {
+        if(this.left === null) {
+            return 0;
+        }
+        return this.left.height;
+    },
+
+    bfactor: function () {
+        return ( this.rHeight() - this.lHeight() );
+    },
+
+    adjustH: function () {
+        return this.height = Math.max( this.rHeight(), this.lHeight() ) + 1;
+    },
+
+    getData: function () {
+        return this.data;
+    },
+
+    setData: function (value) {
+        this.data = value;
+        return this;
+    },
+
+    super: null
+});
+
+//set default prototype for the Utils class
+const createAVLTreeUtilsClass = classFactory({
+    addNode(key, node) {                
+        if (node === null) {                
+            return new this.Node(key);
+        }
+        
+        const compareResult = this.compareFn( key, node.getData());
+
+        if (compareResult > 0) {
+            node.right = this.addNode(key, node.right);                
+        } else if(compareResult < 0) {
+            node.left = this.addNode(key, node.left);
+        } else {            
+            return node.setData(key);
+        }
+        
+        return this.balance(node);
+    },
+
+    balance(node) {
+        node.adjustH();
+
+        switch ( node.bfactor() ) {
+            case  2:
+                if (node.right.bfactor() < 0) {
+                    node.right = this.rightTurn(node.right);
+                }
+                return this.leftTurn(node);
+            case -2:
+                if (node.left.bfactor() > 0) {
+                    node.left = this.leftTurn(node.left);
+                }
+                return this.rightTurn(node);
+            default:
+                return node;
+        }
+    },
+
+    rightTurn(node) {
         const root = node.left;
         node.left = root.right;
         root.right = node;
@@ -48,9 +206,9 @@ const AVLTreeBuilder = ( function() {
         root.adjustH();
 
         return root;
-    }
+    },
 
-    function leftTurn(node) {
+    leftTurn(node) {
         const root = node.right;
         node.right = root.left;
         root.left = node;
@@ -59,47 +217,28 @@ const AVLTreeBuilder = ( function() {
         root.adjustH();
 
         return root;
-    }
+    },
 
-    function balance(node) {        
-        node.adjustH();
-
-        switch ( node.bfactor() ) {
-            case 2:
-                if (node.right.bfactor() < 0) {
-                    node.right = rightTurn(node.right);
-                }
-                return leftTurn(node);
-            case -2:
-                if (node.left.bfactor() > 0) {
-                    node.left = leftTurn(node.left);
-                }
-                return rightTurn(node);
-            default:
-                return node;
-        }
-    }
-
-    function findNode(root, callbackFn) {
+    find(root, key, predicateFn) {
         if (root === null) {
             return null;
         }
 
-        const searchFlag = callbackFn( root.getData() );
+        const searchFlag = this.compareFn(key, root.getData() );
 
         if(searchFlag < 0) {
-            return findNode(root.left, callbackFn);
+            return this.find(root.left, key, predicateFn);
         }
 
         if(searchFlag > 0) {
-            return findNode(root.right, callbackFn);
+            return this.find(root.right, key, predicateFn);
         }
 
-        return root;
-    }   
+        return predicateFn( root.getData() ) ? root.getData() : null;
+    },   
 
-    function removeMinHelper(root) {
-        return function removeMin(node) {
+    removeMinHelper(root) {
+        const removeMin = node => {
             if(node.left === null) {                
                 root.setData( node.getData() );
 
@@ -107,26 +246,28 @@ const AVLTreeBuilder = ( function() {
             }
 
             node.left = removeMin(node.left);
-            return balance(node);
-        }
-    }    
+            return this.balance(node);
+        };
 
-    function removeNode(root, callbackFn, success = {status: false}) {
+        return removeMin;
+    },
+
+    removeNode(root, key, predicateFn, status = {success: false}) {
         if(root === null) {
             return null;
         }
 
-        const targetFlag = callbackFn( root.getData() );
+        const targetFlag = this.compareFn(key, root.getData() );
 
-        if(targetFlag < 0) {           
-            root.left = removeNode(root.left, callbackFn, success);
+        if(targetFlag < 0) {
+            root.left = this.removeNode(root.left, key, predicateFn, status);
 
         } else if(targetFlag > 0) {            
-            root.right = removeNode(root.right, callbackFn, success);
+            root.right = this.removeNode(root.right, key, predicateFn, status);
 
-        } else {            
+        } else if( predicateFn( root.getData() ) ) {
             const {left, right} = root;
-            success.status = true;
+            status.success = true;
 
             if(left === null) {
                 return right;
@@ -136,319 +277,176 @@ const AVLTreeBuilder = ( function() {
                 return left;
             }
             
-            root.right = removeMinHelper(root)(root.right);
+            root.right = this.removeMinHelper(root)(root.right);
         }
 
-        return balance(root);
-    }
+        return this.balance(root);
+    },
 
-    function functionsFactory(compareFn, Node) {
-        function addNode(value, node) {
-            if (node === null) {
-                return new Node(value);
-            }
+    preorder(root, callbackFn) {
+        if(root !== null) {
+            callbackFn( root.getData() );
+            this.preorder(root.left, callbackFn);
+            this.preorder(root.right, callbackFn);
+        } 
+        return null;
+    },
 
-            const compareResult = compareFn( value, node.getData() );
-
-            if (compareResult > 0) {
-                node.right = addNode(value, node.right);                
-            } else if(compareResult < 0) {
-                node.left = addNode(value, node.left);
-            } else {
-                return node.setData(value);
-            }
-            
-            return balance(node);
+    inorder(root, callbackFn) {
+        if ( root !== null ) {
+            this.inorder(root.left, callbackFn);
+            callbackFn( root.getData() );
+            this.inorder(root.right, callbackFn);
         }
+        return null; 
+    },
 
-        function search(key, root) {
-            if(root === null) {
-                return null;
-            }
-
-            const searchFlag = compareFn( key, root.getData() );
-
-            if(searchFlag > 0) {
-                return search(key, root.right);
-            }
-
-            if(searchFlag < 0) {
-                return search(key, root.left);
-            }
-
-            return root;
+    postorder(root, callbackFn) {
+        if ( root !== null ) {
+            this.postorder(root.left, callbackFn);
+            this.postorder(root.right, callbackFn);
+            callbackFn( root.getData() );
         }
+        return null;
+    },
+});
 
-        return {search, addNode};
-    }    
-
-    const AVLTreeUniqueKeys = ( function() {
-        function AVLNode(value = null) {
-            this.data = value;
-            this.left = null;
-            this.right = null;
-            this.height = 1;
-        }
-
-        Object.assign(AVLNode.prototype, nodePrototype);
-        Object.freeze(AVLNode.prototype); 
-
-        const orderMethods = {
-            preorder: function preOrder(node, callbackFn) {
-                if(node !== null) {
-                    callbackFn( node.getData() );
-                    orderMethods.preorder(node.left, callbackFn);
-                    orderMethods.preorder(node.right, callbackFn);
-                } 
-                return null;
-            },
-    
-            inorder: function inOrder(node, callbackFn) {
-                if ( node !== null ) {
-                    inOrder(node.left, callbackFn);
-                    callbackFn( node.getData() );
-                    inOrder(node.right, callbackFn);
-                }
-                return null;
-            },
-    
-            postorder: function postOrder(node, callbackFn) {
-                if ( node !== null ) {
-                    postOrder(node.left, callbackFn);
-                    postOrder(node.right, callbackFn);
-                    callbackFn( node.getData() );
-                }
-                return null;
+//AVL Tree with support for unique keys only 
+const AVLTreeUK = AVLTreeBuilder
+    .addTreeClass(AVLTree)
+    .AddNodeClass(
+        createAVLTreeNodeClass(
+            function(data = null) {
+                this.data = data;
+                this.left = null;
+                this.right = null;
+                this.height = 1;
             }
-        };
-        
-        return class AVLTreeUniqueKeys {        
-            #root = null;        
-            insert;
-            findByKey;
-    
-            constructor(compareFn) {
-                if (typeof compareFn !== 'function') {
-                    throw new TypeError('Argument must be a function.');
-                }
+        )(null)
+    )
+    .addUtilsClass(
+        createAVLTreeUtilsClass(
+            function(Node, compareFn) {
+                this.Node = Node;
+                this.compareFn = compareFn;
+            }
+        )(null)
+    )
+    .create();
 
-                const {addNode, search} = functionsFactory(compareFn, AVLNode);
-    
-                this.insert = value => {
-                    this.#root = addNode(value, this.#root);
-                    return this;
-                };
-
-                this.findByKey = key => {
-                    const result = search(key, this.#root);
-                    return result === null ? result : result.getData();
-                };
-            }       
-    
-            traversal(callbackFn, order = 'inorder') {
-                order = order.replace(/[^a-z]/gi, '').toLowerCase();
-                
-                orderMethods[order](this.#root, callbackFn);
+//AVL Tree with support for non-unique keys
+const AVLTreeNonUK = AVLTreeBuilder
+    .addTreeClass(AVLTree)
+    .AddNodeClass(
+        createAVLTreeNodeClass(
+            function (data = null) {
+                this.data = new DLList().push(data);
+                this.left = null;
+                this.right = null;
+                this.height = 1;
+            }
+        )({
+            setData(data) {                
+                this.data.push(data);
+                console.log(data , this.data.getLength());
                 return this;
-            }
-    
-            reduce(callbackFn, initialValue) {
-                let cb;
-                let acc;
-    
-                const initialCb = (acc, data) => {
-                    cb = callbackFn;
-                    return data;
-                };
-    
-                if(arguments.length === 1) {
-                    cb = initialCb;
-                } else {
-                    cb = callbackFn;
-                    acc = initialValue;
-                }            
-    
-                this.traversal(data => {                
-                    acc = cb(acc, data);                
-                });
-    
-                return acc;
-            }
-    
-            find(compareFn) {
-                const result = findNode(this.#root, compareFn);
-                return result === null ? result : result.getData();
-            }
-            
-            delete(compareFn) {
-                const success = {status: false};
-                this.#root = removeNode(this.#root, compareFn, success);
-    
-                return success.status;
-            }
-        }
-    })();    
-
-    const AVLTreeNonUniqueKeys = ( function () {
-        function AVLNode(value = null) {
-            this.left = null;
-            this.right = null;
-            this.height = 1;
-            this.data = new DLList().push(value);
-        }        
-
-        Object.assign(AVLNode.prototype, nodePrototype, {
-            setData(value) {
-                this.data.push(value);
             },
-
             getData() {
                 return this.data.getHeadValue();
             }
-        });
-
-        Object.freeze(AVLNode.prototype);    
-
-        const orderMethods = {
-            preorder: function preOrder(node, callbackFn) {
-                if(node !== null) {                    
-                    node.data.traversal(callbackFn);
-                    orderMethods.preorder(node.left, callbackFn);
-                    orderMethods.preorder(node.right, callbackFn);
+        })
+    )
+    .addUtilsClass(
+        createAVLTreeUtilsClass(
+            function(Node, compareFn) {
+                this.Node = Node;
+                this.compareFn = compareFn;
+            } 
+        )({
+            removeNode(root, key, predicateFn, status = {success: false}) {
+                if(root === null) {
+                    return null;
+                }
+        
+                const targetFlag = this.compareFn(key, root.getData() );
+        
+                if(targetFlag < 0) {
+                    root.left = this.removeNode(root.left, key, predicateFn, status);
+        
+                } else if(targetFlag > 0) {            
+                    root.right = this.removeNode(root.right, key, predicateFn, status);
+        
+                } else {
+                    status.success = root.data.delete(predicateFn);
+    
+                    if( root.data.getLength() === 0 ) {
+                        const {left, right} = root;
+        
+                        if(left === null) {
+                            return right;
+                        }        
+                        if(right === null) {
+                            return left;
+                        }
+    
+                        root.right = this.removeMinHelper(root)(root.right);
+                        return this.balance(root);
+                    }
+                }    
+                return root;
+            },
+    
+            find(root, key, predicateFn) {
+                if (root === null) {
+                    return null;
+                }
+        
+                const searchFlag = this.compareFn( key, root.getData() );
+        
+                if(searchFlag < 0) {
+                    return this.find(root.left, key, predicateFn);
+                }
+        
+                if(searchFlag > 0) {
+                    return this.find(root.right, key, predicateFn);
+                }
+    
+                return root.data.find(predicateFn);
+            },   
+            
+            preorder(root, callbackFn) {
+                if(root !== null) {
+                    root.data.traversal(callbackFn);
+                    this.preorder(root.left, callbackFn);
+                    this.preorder(root.right, callbackFn);
                 } 
                 return null;
             },
     
-            inorder: function inOrder(node, callbackFn) {
-                if ( node !== null ) {
-                    inOrder(node.left, callbackFn);
-                    node.data.traversal(callbackFn);
-                    inOrder(node.right, callbackFn);
+            inorder(root, callbackFn) {
+                if ( root !== null ) {
+                    this.inorder(root.left, callbackFn);
+                    root.data.traversal(callbackFn);
+                    this.inorder(root.right, callbackFn);
                 }
                 return null;
             },
     
-            postorder: function postOrder(node, callbackFn) {
-                if ( node !== null ) {
-                    postOrder(node.left, callbackFn);
-                    postOrder(node.right, callbackFn);
-                    node.data.traversal(callbackFn);
+            postorder(root, callbackFn) {
+                if ( root !== null ) {
+                    this.postorder(root.left, callbackFn);
+                    this.postorder(root.right, callbackFn);
+                    root.data.traversal(callbackFn);
                 }
                 return null;
             }
-        };
-        return class AVLTreeNonUniqueKeys {
-            #root = null;
-            insert;
-            findByKey;
-
-            constructor(compareFn) {                
-                if (typeof compareFn !== 'function') {
-                    throw new TypeError('Argument must be a function.');
-                }
-
-                const {addNode, search} =  functionsFactory(compareFn, AVLNode);
-    
-                this.insert = function (value) {
-                    this.#root = addNode(value, this.#root);
-                    return this;
-                };
-
-                this.findByKey = key => {
-                    const result = search(key, this.#root);
-                    return result === null ? null : result.reduce((acc, data) => acc.push(data), new DLList() )
-                };
-            }
-
-            traversal(callbackFn, order = 'inorder') {
-                order = order.replace(/[^a-z]/gi, '').toLowerCase();
-                
-                orderMethods[order](this.#root, callbackFn);
-                return this;
-            }
-
-            reduce(callbackFn, initialValue) {
-                let cb;
-                let acc;
-    
-                const initialCb = (acc, data) => {
-                    cb = callbackFn;
-                    return data;
-                };
-    
-                if(arguments.length === 1) {
-                    cb = initialCb;
-                } else {
-                    cb = callbackFn;
-                    acc = initialValue;
-                }            
-    
-                this.traversal(data => {                
-                    acc = cb(acc, data);                
-                });
-    
-                return acc;
-            }
-
-            find() {
-
-            }
-
-            delete() {
-
-            }
-        }
-    })();
-   
-    return class AVLTreeBuilder {
-        #compareFn;
-        #Type;
-        
-
-        static #treeClasses = new Map([
-            ['unique', AVLTreeNonUniqueKeys],
-            ['non-unique', AVLTreeNonUniqueKeys]
-        ]);
-
-        static #defaultCompareFn(value, data) {
-            if(value > data) {
-                return 1;
-            }    
-            if(value < data) {
-                return -1;
-            }    
-            return 0;
-        }
-
-        setCompareFn(fn = AVLTreeBuilder.#defaultCompareFn) {
-            if(typeof fn !== 'function') {
-                throw new TypeError('fn parameter must be a function');
-            }
-            this.#compareFn = fn;
-            return this;
-        }
-
-        setTreeType(keysType = "unique") { 
-            if( !AVLTreeBuilder.#treeClasses.has(keysType) ) {
-                throw new Error(`keysType parameter can take the following values: ${[...AVLTreeBuilder.#treeClasses.keys()]}`);
-            }
-
-            this.#Type = AVLTreeBuilder.#treeClasses.get(keysType);
-            return this;
-        }
-
-        create() {
-            if(this.#Type === undefined || this.#compareFn === undefined) {
-                throw new Error ('Compare function or tree type not specified');
-            }
-
-            return new this.#Type(this.#compareFn);
-        }
-    };
-})();
+        })
+    )
+    .create();
 
 export {    
-    AVLTreeBuilder,
+    AVLTreeNonUK,
+    AVLTreeUK
 }
 
 

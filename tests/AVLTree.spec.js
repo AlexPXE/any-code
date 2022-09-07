@@ -1,13 +1,13 @@
 
-import { AVLTreeUK, AVLTreeNonUK  } from '../src/js/datastructures/bst.js';
+import { AVLTree  } from '../src/js/datastructures/bst.js';
 import { isVoid } from '../src/js/utility/utility.js';
 
 // @ts-ignore
 import test from 'ava';
 
 
-test.skip('AVLTreeUK', t => {
-	const tree = new AVLTreeUK((key, data) => {
+test.serial('AVLTreeUK', t => {
+	const tree = AVLTree.UniqueKeys((key, data) => {
 		if(key > data) {
 			return 1;
 		}
@@ -17,18 +17,14 @@ test.skip('AVLTreeUK', t => {
 		}
 
 		return 0;
-	})
-	.create();
-	
+	})();	
 	
 	const reduceCbForNumbers = (acc, value) => {
 		acc.push(value);
 		return acc;
 	};
 
-	const arr = [];
-
-	
+	const arr = [];	
 
 	for(let i = 0; i < 10; i++) {
 		tree.insert(i);
@@ -54,14 +50,18 @@ test.skip('AVLTreeUK', t => {
 	t.is(tree.find(9_843_546), 9_843_546);
 });
 
-
 test.serial('AVLTreeNonUK', t => {
 	const reduceCbForNumbers = (acc, value) => {
 		acc.push(value);
 		return acc;
 	};
+
+	const randomNumber = (max) => {
+		return ~~(Math.random() * max);
+	}
+
 	const arr = [1, 1, 1, 3, 3, 4, 7, 7, 8, 10, 10];
-	const tree = new AVLTreeNonUK((key, data) => {
+	const tree = AVLTree.NonUniqueKeys((key, data) => {
 		if(key > data) {
 			return 1;
 		}
@@ -71,8 +71,7 @@ test.serial('AVLTreeNonUK', t => {
 		}
 
 		return 0;
-	})
-	.create();
+	})();	
 
 	tree.insert(10)
 		.insert(10)
@@ -87,6 +86,29 @@ test.serial('AVLTreeNonUK', t => {
 		.insert(3);
 		t.is(tree.find(4), 4);
 		t.is(tree.find(8), 8);
+		t.deepEqual(tree.reduce(reduceCbForNumbers, []), arr);
+		t.false(tree.delete(20));
+		t.true(tree.delete(10));
+		t.true(tree.delete(10));
+		t.false(tree.delete(10));
+		t.true(tree.delete(1));
+		t.true(tree.delete(1));
+		t.true(tree.delete(1));
+		t.true(tree.delete(3));
+		t.true(tree.delete(3));
+		t.true(tree.delete(4));
+		t.true(tree.delete(7));
+		t.true(tree.delete(7));
+		t.true(tree.delete(8));
+		t.false(tree.delete(3));
+		t.deepEqual(tree.reduce(reduceCbForNumbers, []), []);
 
-		t.log(`${tree.reduce(reduceCbForNumbers, [])}`);
+
+		const start = performance.now();
+		for(let i = 0; i < 10_000_000; i++) {
+			tree.insert(randomNumber(90_000));
+		}
+		t.log(`Insertion 10 000 000 random numbers: ${(performance.now() - start) / 1000}s`);
+		
+
 });

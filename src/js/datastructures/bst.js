@@ -1,4 +1,4 @@
-import { DLList } from "./llist.js";
+import { DLList as LList } from "./llist.js";
 
 
 const classCreator = proto => {
@@ -16,7 +16,7 @@ const classCreator = proto => {
     };        
 }
 
-const AVLTreeClasses = classCreator => {
+const AVLTreeClassesCreator = classCreator => {
     const privateFields = new WeakMap();
 
     const createClass  = classCreator({
@@ -91,16 +91,17 @@ const AVLTreeClasses = classCreator => {
             function(utils) {
                 privateFields.set(this, {utils, root: null});
             }
-        )({
-            filter(key, predicateFn) {//TODO: Implement filter
-                throw new Error('Not implemented');
+        )({//TODO: test method
+            filter(key, predicateFn) {
+                const pFields = privateFields.get(this);
+
+                return pFields.utils.filter(pFields.root, key, predicateFn);
             }
         })
     });
 };
 
-
-const AVLTreeNodeClasses = classCreator => {
+const AVLTreeNodeClassesCreator = classCreator => {
 
     const createClass = classCreator({
         rHeight: function () {
@@ -148,7 +149,7 @@ const AVLTreeNodeClasses = classCreator => {
 
         NonUniqueKeys: createClass(
             function (data = null) {
-                this.data = new DLList().push(data);
+                this.data = new LList().push(data);
                 this.left = null;
                 this.right = null;
                 this.height = 1;
@@ -165,7 +166,7 @@ const AVLTreeNodeClasses = classCreator => {
     });
 };
 
-const AVLTreeUtilsClasses = classCreator => {
+const AVLTreeUtilsClassesCreator = classCreator => {
 
     const createClass = classCreator({
         addNode(key, node) {                
@@ -365,24 +366,34 @@ const AVLTreeUtilsClasses = classCreator => {
                 }    
                 return root;
             },
-    
-            find(root, key, predicateFn) {
+            
+            findNode(root, key) {
                 if (root === null) {
                     return null;
                 }
-        
+
                 const searchFlag = this.compareFn( key, root.getData() );
         
-                if(searchFlag < 0) {
-                    return this.find(root.left, key, predicateFn);
+                if(searchFlag < 0) {                                        
+                    return this.findNode(root.left, key);
                 }
         
-                if(searchFlag > 0) {
-                    return this.find(root.right, key, predicateFn);
+                if(searchFlag > 0) {                    
+                    return this.findNode(root.right, key);
                 }
     
-                return root.data.find(predicateFn);
-            },   
+                return root;
+            },
+
+            find(root, key, predicateFn) {
+                const node = this.findNode(root, key);    
+                return node === null ? node : node.data.find(predicateFn);
+            },
+            //TODO: test
+            filter(root, key, predicateFn) {
+                const node = this.findNode(root, key);                  
+                return node === null ? new LList() : node.data.filter(predicateFn);
+            },
             
             preorder(root, callbackFn) {
                 if(root !== null) {
@@ -442,9 +453,9 @@ function TreeFactoryCreator(trees, utils, nodes) {
  * @type {AVLTreeFactory}
  */
 const AVLTree = TreeFactoryCreator(
-    AVLTreeClasses(classCreator),
-    AVLTreeUtilsClasses(classCreator),
-    AVLTreeNodeClasses(classCreator)
+    AVLTreeClassesCreator(classCreator),
+    AVLTreeUtilsClassesCreator(classCreator),
+    AVLTreeNodeClassesCreator(classCreator)
 );
 
 /**

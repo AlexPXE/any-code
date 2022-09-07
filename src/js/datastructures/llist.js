@@ -11,9 +11,9 @@ const DLList = ( function () {
         }
     }
 
-    function findNode(predicate, node) {
+    function findNode(predicateFn, node) {
         while(node !== null) {
-            if( predicate(node.data) ) {
+            if( predicateFn(node.data) ) {
                 return node;
             }
             
@@ -140,14 +140,14 @@ const DLList = ( function () {
             return this.#tail.data;
         }
 
-        find(predicate) {
-            const foundNode = findNode(predicate, this.#head);            
+        find(predicateFn) {                    
+            const foundNode = findNode(predicateFn, this.#head);            
             return foundNode === null ? foundNode : foundNode.data; 
         }
 
-        filter(callbackFn) {
+        filter(predicateFn) {
             return this.reduce((acc, value) => {
-                if( callbackFn(value) ) {
+                if( predicateFn(value) ) {
                     acc.push(value);
                 }
 
@@ -213,7 +213,7 @@ const DLList = ( function () {
 
         reduce(callbacFn, initialValue) {
             if(this.#length === 0) {
-                return initialValue;
+                return initialValue; //FIXME: Might be worth returning null
             }
 
             let acc;

@@ -108,7 +108,43 @@ test.serial('AVLTreeNonUK', t => {
 		for(let i = 0; i < 10_000_000; i++) {
 			tree.insert(randomNumber(90_000));
 		}
+
 		t.log(`Insertion 10 000 000 random numbers: ${(performance.now() - start) / 1000}s`);
+
+		t.is( tree.filter(91000, v => true).getLength(), 0, `Filter by non-existent key.` );
+
+		t.log( `Number of occurrences of the number 89321: ${ tree.filter(89321, v => true).getLength() }` );
+
+		tree.destroy();
+
+
+
+		function Foo(name, surname) {
+			this.name = name;
+			this.surname = surname;
+		}
+
+		const treeWithObjects = AVLTree.NonUniqueKeys((obj, data) => {
+			if(obj.name > data.name) {
+				return 1;
+			}
+
+			if(obj.name < data.name) {
+				return -1;
+			}
+
+			return 0;
+		})();
 		
+		treeWithObjects.insert( new Foo('Alex', 'Foot') )
+						.insert( new Foo('Alex', 'Don') )
+						.insert( new Foo('Alex', 'Don') )
+						.insert( new Foo('Vint', 'Rasmus') );
+		
+		t.deepEqual( treeWithObjects.find({name: 'Vint'}), new Foo('Vint', 'Rasmus') );
+		t.is( treeWithObjects.filter({name: 'Alex'}, () => true).getLength(), 3 );
+		t.is( treeWithObjects.filter({name: 'Alex'}, data => data.surname === 'Cat').getLength(), 0 );
+		t.is( treeWithObjects.filter({name: 'Alex'}, data => data.surname === 'Foot').getLength(), 1 );
+		t.is( treeWithObjects.filter({name: 'Alex'}, data => data.surname === 'Don').getLength(), 2 );
 
 });

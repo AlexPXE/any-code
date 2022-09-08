@@ -45,7 +45,7 @@ test.serial('AVLTreeUK', t => {
 		tree.insert(i);	
 	}
 
-	t.log(`${(performance.now() - start) / 1000}`)
+	t.log(`Insertion 10 000 000 numbers: ${(performance.now() - start) / 1000}`);
 
 	t.is(tree.find(9_843_546), 9_843_546);
 });
@@ -136,15 +136,20 @@ test.serial('AVLTreeNonUK', t => {
 			return 0;
 		})();
 		
-		treeWithObjects.insert( new Foo('Alex', 'Foot') )
+		treeWithObjects.insert( new Foo('Vint', 'Rasmus') )
+						.insert( new Foo('Alex', 'Foot') )
 						.insert( new Foo('Alex', 'Don') )
-						.insert( new Foo('Alex', 'Don') )
-						.insert( new Foo('Vint', 'Rasmus') );
+						.insert( new Foo('Alex', 'Don') );
 		
 		t.deepEqual( treeWithObjects.find({name: 'Vint'}), new Foo('Vint', 'Rasmus') );
 		t.is( treeWithObjects.filter({name: 'Alex'}, () => true).getLength(), 3 );
 		t.is( treeWithObjects.filter({name: 'Alex'}, data => data.surname === 'Cat').getLength(), 0 );
 		t.is( treeWithObjects.filter({name: 'Alex'}, data => data.surname === 'Foot').getLength(), 1 );
 		t.is( treeWithObjects.filter({name: 'Alex'}, data => data.surname === 'Don').getLength(), 2 );
+		
+		t.log(`${treeWithObjects.reduce((acc, {name, surname}) => {
+			acc.push( [name, surname] );
+			return acc;
+		}, [])}`)
 
 });

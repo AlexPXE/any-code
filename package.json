@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "jsdoc": "jsdoc -c jsdoc.json",
-    "test" : "ava"
+    "test": "ava"
   },
   "keywords": [],
   "author": "",

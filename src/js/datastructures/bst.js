@@ -1,187 +1,473 @@
-import {
-    isVoid
-} from '../utility/utility.js';
+import { DLList as LList } from "./llist.js";
 
-const AVLTree = ( function () {
 
-    const TestNode = ( function () {
-        function AVLNode(value) {
-            this.key = value;
-            this.left = null;
-            this.right = null;
-            this.height = 1;
-        }
-
-        AVLNode.prototype.lHeight = function () {
-            if(this.left === null) {
-                return 0;
+const classCreator = proto => {
+    return constr => {
+        Object.assign(constr.prototype, proto)
+        
+        return extendingObj => {            /*if object then extend prototype*/
+            if(typeof extendingObj === 'object' && extendingObj !== null) {
+               Object.assign(constr.prototype, extendingObj);
             }
-            
-            return this.left.height;
-        }
+            Object.freeze(constr.prototype);
 
-        AVLNode.prototype.rHeight = function () {
+            return constr;
+        };
+    };        
+}
+
+const AVLTreeClassesCreator = classCreator => {
+    const privateFields = new WeakMap();
+
+    const createClass  = classCreator({
+
+        insert(data) {
+            const pFields = privateFields.get(this);            
+            
+            pFields.root = pFields.utils.addNode(data, pFields.root);
+            return this;
+        },
+    
+        traversal(callbackFn, order = 'inorder') {            
+            const pFields = privateFields.get(this);
+
+            order = order.replace(/[^a-z]/gi, '').toLowerCase();    
+
+            pFields.utils[order](pFields.root, callbackFn);
+            return this;
+        },
+    
+        reduce(callbackFn, initialValue) {
+            let cb;
+            let acc;
+    
+            if(arguments.length === 1) {
+                cb = (acc, data) => {
+                    cb = callbackFn;
+                    return data;
+                };
+            } else {
+                cb = callbackFn;
+                acc = initialValue;
+            }            
+    
+            this.traversal(data => {                
+                acc = cb(acc, data);                
+            });
+    
+            return acc;
+        },
+    
+        find(key, predicateFn = data => true) {            
+            const pFields = privateFields.get(this);
+
+            return pFields.utils.find(pFields.root, key, predicateFn);
+        },
+    
+        delete(key, predicateFn = data => true) {
+            const pFields = privateFields.get(this);
+            const status = {success: false};        
+
+            pFields.root = pFields.utils.removeNode(pFields.root, key, predicateFn, status);
+            
+            return status.success;
+        },
+    
+        destroy() {
+            privateFields.get(this).root = null;
+            return this;
+        }
+    });
+
+
+    return Object.freeze({
+        UniqueKeys: createClass(
+            function(utils) {
+                privateFields.set(this, {utils, root: null});
+            }
+        )(null),
+
+        NonUniqueKeys: createClass(
+            function(utils) {
+                privateFields.set(this, {utils, root: null});
+            }
+        )({//TODO: test method
+            filter(key, predicateFn = () => true) {
+                const pFields = privateFields.get(this);
+
+                return pFields.utils.filter(pFields.root, key, predicateFn);
+            }
+        })
+    });
+};
+
+const AVLTreeNodeClassesCreator = classCreator => {
+
+    const createClass = classCreator({
+        rHeight: function () {
             if(this.right === null) {
                 return 0;
             }
-            
             return this.right.height;
-        }
-
-        AVLNode.prototype.bfactor = function () {
-            return (this.rHeight() - this.lHeight());
-        }
-
-        AVLNode.prototype.adjustH = function () {
-            return this.height = Math.max(this.rHeight(), this.lHeight()) + 1;
-        }
-
-        return AVLNode;
-    })();
-
-    const orderMethods = {
-        preorder: function preOrder(node, callback) {
-            if (!isVoid(node)) {
-                callback(node.key);
-                preOrder(node.left, callback);
-                preOrder(node.right, callback);
-            }
-
-            return;
         },
-
-        inorder: function inOrder(node, callback) {
-            if (!isVoid(node)) {
-                inOrder(node.left, callback);
-                callback(node.key);
-                inOrder(node.right, callback);
+    
+        lHeight: function () {
+            if(this.left === null) {
+                return 0;
             }
-
-            return;
+            return this.left.height;
         },
-
-        postorder: function postOrder(node, callback) {
-            if (!isVoid(node)) {
-                postOrder(node.left, callback);
-                postOrder(node.right, callback);
-                callback(node.key);
-            }
-
-            return;
-        }
-    };
-
-    function rightTurn(node) {
-        const root = node.left;
-        node.left = root.right;
-        root.right = node;
-
-        node.adjustH();
-        root.adjustH();
-
-        return root;
-    }
-
-    function leftTurn(node) {
-        const root = node.right;
-        node.right = root.left;
-        root.left = node;
-
-        node.adjustH();
-        root.adjustH();
-
-        return root;
-    }
-
-    function balance(node) {
-
-        if (node.bfactor() > 1) {
-            if (node.right.bfactor() < 0) {
-                node.right = rightTurn(node.right);
-            }
-
-            return leftTurn(node);
-        }
-
-        if (node.bfactor() < -1) {
-            if (node.left.bfactor() > 0) {
-                node.left = leftTurn(node.left);
-            }
-
-            return rightTurn(node);
-        }
-
-        return node;
-    }
-
-    function find(node, predicate) {
-        if (node === null) {
-            return null;
-        }
-
-        switch (predicate(node.key)) {
-            case 0:
-                return node.key;
-            case -1:
-                return find(node.left, predicate);
-            case 1:
-                return find(node.right, predicate);
-        }
-    }
-
-    function addNodeFactory(compare) {
-
-        function addNode(node, key) {
-            if (node === null) {
-                return new TestNode(key);
-            }
-
-            if (compare(key, node.key) > 0) {
-                node.right = addNode(node.right, key);
-            } else {
-                node.left = addNode(node.left, key);
-            }            
-
-            node.adjustH();
-
-            return Math.abs(node.bfactor()) === 2 ? balance(node) : node;
-        }
-
-        return addNode;
-
-    }
-    return class AVLTree {        
-        #root = null;
-        insert;
-
-        constructor(compare = (a, b) => a > b ? 1 : 0) {
-            if (typeof compare !== 'function') {
-                throw new TypeError('Argument must be a function.');
-            }
-
-            this.insert = (() => {
-                const addNode = addNodeFactory(compare);
-
-                return function (key) {
-                    this.#root = addNode(this.#root, key);
-                    return this;
-                }
-            })();
-        }
-
-        traversal(callback, order = 'inorder') {
-            order = order.replace(/[^a-z]/gi, '').toLowerCase();
-
-            orderMethods[order](this.#root, callback);
+    
+        bfactor: function () {
+            return ( this.rHeight() - this.lHeight() );
+        },
+    
+        adjustH: function () {
+            return this.height = Math.max( this.rHeight(), this.lHeight() ) + 1;
+        },
+    
+        getData: function () {
+            return this.data;
+        },
+    
+        setData: function (value) {
+            this.data = value;
             return this;
-        }
+        },
+    });
+    
+    return Object.freeze({
 
-        findByKey(predicate = k => 0) {
-            return find(this.#root, predicate);
-        }
-    }
-})();
+        UniqueKeys: createClass(
+            function(data = null) {
+                this.data = data;
+                this.left = null;
+                this.right = null;
+                this.height = 1;
+            }
+        )(null),
 
-export {
-    AVLTree,
+        NonUniqueKeys: createClass(
+            function (data = null) {
+                this.data = new LList().push(data);
+                this.left = null;
+                this.right = null;
+                this.height = 1;
+            }
+        )({
+            setData(data) {                
+                this.data.push(data);                
+                return this;
+            },
+            getData() {
+                return this.data.getHeadValue();
+            }
+        }),
+    });
+};
+
+const AVLTreeUtilsClassesCreator = classCreator => {
+
+    const createClass = classCreator({
+        addNode(key, node) {                
+            if (node === null) {                
+                return new this.Node(key);
+            }
+            
+            const compareResult = this.compareFn( key, node.getData());
+    
+            if (compareResult > 0) {
+                node.right = this.addNode(key, node.right);                
+            } else if(compareResult < 0) {
+                node.left = this.addNode(key, node.left);
+            } else {            
+                return node.setData(key);
+            }
+            
+            return this.balance(node);
+        },
+    
+        balance(node) {
+            node.adjustH();
+    
+            switch ( node.bfactor() ) {
+                case  2:
+                    if (node.right.bfactor() < 0) {
+                        node.right = this.rightTurn(node.right);
+                    }
+                    return this.leftTurn(node);
+                case -2:
+                    if (node.left.bfactor() > 0) {
+                        node.left = this.leftTurn(node.left);
+                    }
+                    return this.rightTurn(node);
+                default:
+                    return node;
+            }
+        },
+    
+        rightTurn(node) {
+            const root = node.left;
+            node.left = root.right;
+            root.right = node;
+    
+            node.adjustH();
+            root.adjustH();
+    
+            return root;
+        },
+    
+        leftTurn(node) {
+            const root = node.right;
+            node.right = root.left;
+            root.left = node;
+    
+            node.adjustH();
+            root.adjustH();
+    
+            return root;
+        },
+    
+        find(root, key, predicateFn) {
+            if (root === null) {
+                return null;
+            }
+    
+            const searchFlag = this.compareFn(key, root.getData() );
+    
+            if(searchFlag < 0) {
+                return this.find(root.left, key, predicateFn);
+            }
+    
+            if(searchFlag > 0) {
+                return this.find(root.right, key, predicateFn);
+            }
+    
+            return predicateFn( root.getData() ) ? root.getData() : null;
+        },   
+    
+        removeMinHelper(root) {
+            const removeMin = node => {
+                if(node.left === null) {                
+                    root.setData( node.getData() );
+    
+                    return node.right;
+                }
+    
+                node.left = removeMin(node.left);
+                return this.balance(node);
+            };
+    
+            return removeMin;
+        },
+    
+        removeNode(root, key, predicateFn, status = {success: false}) {
+            if(root === null) {
+                return null;
+            }
+    
+            const targetFlag = this.compareFn(key, root.getData() );
+    
+            if(targetFlag < 0) {
+                root.left = this.removeNode(root.left, key, predicateFn, status);
+    
+            } else if(targetFlag > 0) {            
+                root.right = this.removeNode(root.right, key, predicateFn, status);
+    
+            } else if( predicateFn( root.getData() ) ) {
+                const {left, right} = root;
+                status.success = true;
+    
+                if(left === null) {
+                    return right;
+                }
+    
+                if(right === null) {
+                    return left;
+                }
+                
+                root.right = this.removeMinHelper(root)(root.right);
+            }
+    
+            return this.balance(root);
+        },
+    
+        preorder(root, callbackFn) {
+            if(root !== null) {
+                callbackFn( root.getData() );
+                this.preorder(root.left, callbackFn);
+                this.preorder(root.right, callbackFn);
+            } 
+            return null;
+        },
+    
+        inorder(root, callbackFn) {
+            if ( root !== null ) {
+                this.inorder(root.left, callbackFn);
+                callbackFn( root.getData() );
+                this.inorder(root.right, callbackFn);
+            }
+            return null; 
+        },
+    
+        postorder(root, callbackFn) {
+            if ( root !== null ) {
+                this.postorder(root.left, callbackFn);
+                this.postorder(root.right, callbackFn);
+                callbackFn( root.getData() );
+            }
+            return null;
+        },
+    });
+
+    return Object.freeze({
+        UniqueKeys: createClass(
+            function(Node, compareFn) {
+                this.Node = Node;
+                this.compareFn = compareFn;
+            }
+        )(null),
+
+        NonUniqueKeys: createClass(
+            function(Node, compareFn) {
+                this.Node = Node;
+                this.compareFn = compareFn;
+            } 
+        )({
+            removeNode(root, key, predicateFn, status = {success: false}) {
+                if(root === null) {
+                    return null;
+                }
+        
+                const targetFlag = this.compareFn(key, root.getData() );
+        
+                if(targetFlag < 0) {
+                    root.left = this.removeNode(root.left, key, predicateFn, status);
+        
+                } else if(targetFlag > 0) {            
+                    root.right = this.removeNode(root.right, key, predicateFn, status);
+        
+                } else {
+                    status.success = root.data.delete(predicateFn);
+    
+                    if( root.data.getLength() === 0 ) {
+                        const {left, right} = root;
+        
+                        if(left === null) {
+                            return right;
+                        }        
+                        if(right === null) {
+                            return left;
+                        }
+    
+                        root.right = this.removeMinHelper(root)(root.right);
+                        return this.balance(root);
+                    }
+                }    
+                return root;
+            },
+            
+            findNode(root, key) {
+                if (root === null) {
+                    return null;
+                }
+
+                const searchFlag = this.compareFn( key, root.getData() );
+        
+                if(searchFlag < 0) {                                        
+                    return this.findNode(root.left, key);
+                }
+        
+                if(searchFlag > 0) {                    
+                    return this.findNode(root.right, key);
+                }
+    
+                return root;
+            },
+
+            find(root, key, predicateFn) {
+                const node = this.findNode(root, key);    
+                return node === null ? node : node.data.find(predicateFn);
+            },
+            //TODO: test
+            filter(root, key, predicateFn) {
+                const node = this.findNode(root, key);                  
+                return node === null ? new LList() : node.data.filter(predicateFn);
+            },
+            
+            preorder(root, callbackFn) {
+                if(root !== null) {
+                    root.data.traversal(callbackFn);
+                    this.preorder(root.left, callbackFn);
+                    this.preorder(root.right, callbackFn);
+                } 
+                return null;
+            },
+    
+            inorder(root, callbackFn) {
+                if ( root !== null ) {
+                    this.inorder(root.left, callbackFn);
+                    root.data.traversal(callbackFn);
+                    this.inorder(root.right, callbackFn);
+                }
+                return null;
+            },
+    
+            postorder(root, callbackFn) {
+                if ( root !== null ) {
+                    this.postorder(root.left, callbackFn);
+                    this.postorder(root.right, callbackFn);
+                    root.data.traversal(callbackFn);
+                }
+                return null;
+            }
+        }),
+    });
+};
+
+/**
+ * 
+ * @param {Object} trees 
+ * @param {Object} utils 
+ * @param {Object} nodes 
+ * @returns {Object}
+ */
+function TreeFactoryCreator(trees, utils, nodes) {
+
+    return Object.freeze(
+        Object.entries(trees).reduce((acc, [key, Tree]) => {        
+            acc[key] = function(compareFn) {
+                const utilsInstance = new utils[key](nodes[key], compareFn);
+    
+                return function() {
+                    return new Tree(utilsInstance);
+                }
+            }
+    
+            return acc;
+        }, {})
+    );
 }
+
+/**
+ * @type {AVLTreeFactory}
+ */
+const AVLTree = TreeFactoryCreator(
+    AVLTreeClassesCreator(classCreator),
+    AVLTreeUtilsClassesCreator(classCreator),
+    AVLTreeNodeClassesCreator(classCreator)
+);
+
+/**
+ * @typedef {Object} AVLTreeFactory
+ * @property {Function} NonUniqueKeys Create AVL Tree with non-unique keys.
+ * @property {Function} UniqueKeys Create AVL Tree with unique keys.
+*/
+
+
+export {    
+    AVLTree
+}
+
+
+

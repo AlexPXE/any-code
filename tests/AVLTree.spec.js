@@ -1,192 +1,155 @@
-import { AVLTree } from '../src/js/datastructures/bst.js';
+
+import { AVLTree  } from '../src/js/datastructures/bst.js';
 import { isVoid } from '../src/js/utility/utility.js';
+
 // @ts-ignore
 import test from 'ava';
 
-const INSERT_SPEED_TEST_TIME = 9;
-const AMOUNT_OF_ELEMENTS = 10_000_000;
-const SEARCH_ELEMENT = 9_333_123;
 
-const predicateF = k => {
-	if(SEARCH_ELEMENT === k) {
+test.serial('AVLTreeUK', t => {
+	const tree = AVLTree.UniqueKeys((key, data) => {
+		if(key > data) {
+			return 1;
+		}
+
+		if(key < data) {
+			return -1;
+		}
+
 		return 0;
-	}
-	if(SEARCH_ELEMENT < k) {
-		return -1;
-	}
-	return 1;
-};
-
-function TestNode(value) {
-	this.key = value;
-	this.left = null;
-	this.right = null;
-	this.height = 1;
-}
-
-const NodeFabric = (NodeClass) => {
-	return val => {
-		return new NodeClass(val);
+	})();	
+	
+	const reduceCbForNumbers = (acc, value) => {
+		acc.push(value);
+		return acc;
 	};
-};
 
-function testMethods({
-	obj, 									//test object
-	Filler = null,							//function that fills the tree (or array) with random values. If not needed, pass null, then will be used numers from 0 to AMOUNT_OF_ELEMENTS.
-	amountOfElements: {
-		from,
-		to,
-	} = {
-		from: 0,
-		to: AMOUNT_OF_ELEMENTS
-	},
-	insert: {
-		iName = "insert", 											//name of insert method
-		insertTimeLimit = INSERT_SPEED_TEST_TIME 		//time limit (in seconds) for insert speed test.
-	}, 						
-	searchMethod: {
-		fName = "find",								//name of find method
-		predicate,  						//callback for find method if needed. If not needed, pass null. But then you need to specify the "serchValue" parameter.
-		serchValue, 						//value for find method if needed. If not needed, pass null. But then you need to specify the "predicate" parameter.
-		expectedResult = SEARCH_ELEMENT,	//expected result of find method
-		searchResultHandler = res => res,	//handler for search result		
-	},
-}, t) {
+	const arr = [];	
 
-	let insertTime;
-	let findTime;
-	let foundEl;
-	let processedSearchResult;
-
-	if(isVoid(Filler)) {
-
-		insertTime = performance.now();
-		for(let i = from; i < to; i++) {    
-			obj[iName](i);
-		}
-		insertTime = (performance.now() - insertTime) / 1000;
-
-	} else {
-
-		insertTime = performance.now();
-		for(let i = from; i < to; i++) {    
-			obj[iName](Filler(i));
-		}
-		insertTime = (performance.now() - insertTime) / 1000;
+	for(let i = 0; i < 10; i++) {
+		tree.insert(i);
+		arr.push(i);
 	}
 
-	findTime = performance.now();
-	foundEl = obj[fName]( isVoid(predicate) ? serchValue : predicate );
-	findTime = (performance.now() - findTime) / 1000;
+	t.deepEqual( tree.reduce(reduceCbForNumbers, []), arr );
+	t.is( tree.find(5), 5 );
+	t.true( tree.delete(5) );
+	t.false( tree.delete(5) );	
+	t.deepEqual( tree.insert(1).reduce(reduceCbForNumbers, []), arr.filter(v => v !== 5));
 	
-	processedSearchResult = searchResultHandler(foundEl);	
-	
-	t.assert(
-		insertTime < insertTimeLimit, 
-		`${insertTime} seconds have passed.`
-	);
+	tree.destroy();
 
-	t.assert(
-		processedSearchResult === expectedResult, 
-		`${processedSearchResult} is not equal to ${expectedResult}` 
-	);
+	const start = performance.now();
 
-	t.log(`
-		insertion time ${insertTime}s,
-		find time: ${findTime}s, 
-		search result: ${processedSearchResult},
-		expected result: ${expectedResult}
-	`);
-}
+	for(let i = 0; i < 10_000_000; i++) {
+		tree.insert(i);	
+	}
 
+	t.log(`Insertion 10 000 000 numbers: ${(performance.now() - start) / 1000}`);
 
-
-test.serial("Test AVLTree", t => {
-
-	testMethods({
-		obj: new AVLTree(),	
-		insert: {
-			iName: "insert"
-		}, 						
-		searchMethod: {
-			fName: "findByKey",				
-			predicate: predicateF,  											
-			serchValue: null,			
-		},		
-	}, t);
+	t.is(tree.find(9_843_546), 9_843_546);
 });
 
-test.serial("Test Array", t => {
+test.serial('AVLTreeNonUK', t => {
+	const reduceCbForNumbers = (acc, value) => {
+		acc.push(value);
+		return acc;
+	};
 
-	testMethods({
-		obj: [],
-		Filler: NodeFabric(TestNode),
-		insert: {
-			iName: "push"
-		}, 						
-		searchMethod: {
-			fName: "find",
-			predicate: n => n.key === SEARCH_ELEMENT,
-			searchResultHandler: res => res && res.key,
-			serchValue: null,			
-		},
-	}, t);
-});
+	const randomNumber = (max) => {
+		return ~~(Math.random() * max);
+	}
 
-test.serial('Map', t => {
-	testMethods({
-		obj: {
-			map: new Map(),
-			node: NodeFabric(TestNode),
-			insert: function (key) {
-				this.map.set(key, this.node(key));
-			},
+	const arr = [1, 1, 1, 3, 3, 4, 7, 7, 8, 10, 10];
+	const tree = AVLTree.NonUniqueKeys((key, data) => {
+		if(key > data) {
+			return 1;
+		}
 
-			find: function(key) {
-				return this.map.get(key);
-			}			
-		},
-		insert: {
-			iName: "insert",			
-		}, 						
-		searchMethod: {
-			fName: "find",
-			predicate: null,
-			serchValue: SEARCH_ELEMENT,
-			searchResultHandler: res => res && res.key,			
-		}		
-	}, t);
-});
+		if(key < data) {
+			return -1;
+		}
+
+		return 0;
+	})();	
+
+	tree.insert(10)
+		.insert(10)
+		.insert(1)
+		.insert(1)
+		.insert(1)
+		.insert(7)
+		.insert(8)
+		.insert(7)
+		.insert(3)
+		.insert(4)
+		.insert(3);
+		t.is(tree.find(4), 4);
+		t.is(tree.find(8), 8);
+		t.deepEqual(tree.reduce(reduceCbForNumbers, []), arr);
+		t.false(tree.delete(20));
+		t.true(tree.delete(10));
+		t.true(tree.delete(10));
+		t.false(tree.delete(10));
+		t.true(tree.delete(1));
+		t.true(tree.delete(1));
+		t.true(tree.delete(1));
+		t.true(tree.delete(3));
+		t.true(tree.delete(3));
+		t.true(tree.delete(4));
+		t.true(tree.delete(7));
+		t.true(tree.delete(7));
+		t.true(tree.delete(8));
+		t.false(tree.delete(3));
+		t.deepEqual(tree.reduce(reduceCbForNumbers, []), []);
 
 
-test.serial('Set', t => {
-	testMethods({
-		obj: {
-			set: new Set(),
-			node: NodeFabric(TestNode),
-			insert: function (key) {
-				this.set.add(this.node(key));
-			},
-			find: function (key) {
-				for(let k of this.set) {
-					if(k.key === key) {
-						return k;
-					}
-				}
-				return null;
+		const start = performance.now();
+		for(let i = 0; i < 10_000_000; i++) {
+			tree.insert(randomNumber(90_000));
+		}
+
+		t.log(`Insertion 10 000 000 random numbers: ${(performance.now() - start) / 1000}s`);
+
+		t.is( tree.filter(91000, v => true).getLength(), 0, `Filter by non-existent key.` );
+
+		t.log( `Number of occurrences of the number 89321: ${ tree.filter(89321, v => true).getLength() }` );
+
+		tree.destroy();
+
+
+
+		function Foo(name, surname) {
+			this.name = name;
+			this.surname = surname;
+		}
+
+		const treeWithObjects = AVLTree.NonUniqueKeys((obj, data) => {
+			if(obj.name > data.name) {
+				return 1;
 			}
-		},
-		insert: {
-			iName: "insert",			
-		}, 						
-		searchMethod: {
-			fName: "find",
-			predicate: null,
-			serchValue: SEARCH_ELEMENT,
-			searchResultHandler: res => res && res.key,			
-		}		
-	}, t);
+
+			if(obj.name < data.name) {
+				return -1;
+			}
+
+			return 0;
+		})();
+		
+		treeWithObjects.insert( new Foo('Vint', 'Rasmus') )
+						.insert( new Foo('Alex', 'Foot') )
+						.insert( new Foo('Alex', 'Don') )
+						.insert( new Foo('Alex', 'Don') );
+		
+		t.deepEqual( treeWithObjects.find({name: 'Vint'}), new Foo('Vint', 'Rasmus') );
+		t.is( treeWithObjects.filter({name: 'Alex'}, () => true).getLength(), 3 );
+		t.is( treeWithObjects.filter({name: 'Alex'}, data => data.surname === 'Cat').getLength(), 0 );
+		t.is( treeWithObjects.filter({name: 'Alex'}, data => data.surname === 'Foot').getLength(), 1 );
+		t.is( treeWithObjects.filter({name: 'Alex'}, data => data.surname === 'Don').getLength(), 2 );
+		
+		t.log(`${treeWithObjects.reduce((acc, {name, surname}) => {
+			acc.push( [name, surname] );
+			return acc;
+		}, [])}`)
+
 });
-
-
-test.todo("Test AVLTree.prototype.remove()");

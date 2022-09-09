@@ -7,12 +7,14 @@
  */
 
 const UINT8_MAX = 255;
+
+//TODO: Need to test!
 class CounterBuilder {
     /**
      * Array of dictionaries.
      * @type {Array}
      */
-    dict = [];
+    dicts = [];
     /**
      * Array of start positions for each counter.
      */
@@ -27,35 +29,6 @@ class CounterBuilder {
     constructor() {
 
     }
-
-    /**
-     * This method returns a function that calls the CounterBuilder.prototype.permut() method
-     * with the parameters given by the [CounterBuilder.prototype.addCounter() method.]{@link module:counters~CounterBuilder#addCounter}
-     * 
-     * @returns {function}  
-     * ```JavaScript      
-     *      (callback = set => false) => this.permut(dict, counters, rangeLimit, set, callback);
-     * ```
-     */
-    create() {
-        const dict = this.dict;
-        const rangeLimit = this.dict.map(d => d.length);
-        const set = [];
-
-        const counters = Math.max(...rangeLimit) > UINT8_MAX ? 
-            new Uint32Array(rangeLimit.length) : 
-            new Uint8Array(rangeLimit.length);       
-        
-        this.startPos.forEach((start, i) => {
-            counters[i] = start;
-            set[i] = dict[i][start];
-        });
-        
-        this.dict = [];
-        this.startPos = [];
-
-        return (callback = set => false) => this.permut(dict, counters, rangeLimit, set, callback); 
-    }   
     
     /**
      * The CounterBuilder.prototype.addCounter() method adds dictionary and start position to the builder.
@@ -77,123 +50,100 @@ class CounterBuilder {
             throw new Error(`Invalid argument start = ${start}. It must be a number in range [0; dict.length - 1]`);
         }
 
-        this.dict.push(dict);
+        this.dicts.push(dict);
         this.startPos.push(start);
         return this;
     }
 
     /**
+     * This method returns a function that calls the CounterBuilder.prototype.permut() method
+     * with the parameters given by the [CounterBuilder.prototype.addCounter() method.]{@link module:counters~CounterBuilder#addCounter}
+     * 
+     * @returns {function}  
+     * ```JavaScript      
+     *      (callback = set => false) => this.permut(dicts, startPos, predicateFn);
+     * ```
+     */
+     create() {
+        const dicts = this.dicts;        
+        const startPos = this.startPos;
+
+        this.dicts = [];
+        this.startPos = [];
+
+        return (predicateFn = set => false) => this.permut(dicts, startPos, predicateFn); 
+    }
+
+
+    //TODO: Make the function independent of the class or make it private
+    /**
      * CounterBuilder.prototype.permut() iterates over all 
       [possible combinations of dictionary elements.](https://en.wikipedia.org/wiki/Permutation#Permutations_with_repetition)
       Each cell of the `set` array must correspond to an array or a string from the `dict` array. 
      * 
-     * @param {Array.<Array>|Array.<string>} dict Array of strings or arrays to iterate ( `[['dict1'], ['dict2'], [1, 2, 3] ]` ).
-       The maximum length of each array (string) must not exceed __`2**32 - 1`__.
-     * @param {Uint32Array|Uint8Array} counters The current indexes of the elements of the combination.
-     * @param {Array<Number>} rangeLimit An array with the length of each dictionary.
-     * @param {Array} set The `set` parameter is passed to the callback after each change, 
+     * @param {Array.<Array>|Array.<string>} dicts Array of strings or arrays to iterate ( `[['dict1'], ['dict2'], [1, 2, 3] ]` ).
+       The maximum length of each array (string) must not exceed __`2**32 - 1`__.          
+     * @param {Array} startPositions Initial positions of counters.
       each time representing a new combination of elements from the dictionaries
-     * @param {function} callback A callback that is called after each combination change, 
+     * @param {function} predicateFn A callback that is called after each combination change, 
       which will be passed an array with the current elements of the combination. Callback must return `true` to stop the iteration.
      * @returns {Array} The array of the current combination.
      */
-    permut(dict, counters, rangeLimit, set, callback) {
-        const firstC = counters.length - 1;
-        const lastSet = rangeLimit.map((v, i) => dict[i][v - 1]);
-        const lastC = 0;
-        const loop = true;        
-        let indC = firstC;
+      permut(dicts, startPositions, predicateFn) {
+
+        const rangeLimit = dicts.map(d => d.length);        
+
+        const counters = Math.max(...rangeLimit) > UINT8_MAX ? 
+            new Uint32Array(rangeLimit.length) : 
+            new Uint8Array(rangeLimit.length);
+
+        const set = [];        
+        const lastSet = rangeLimit.map((v, i) => dicts[i][v - 1]);
+        const loop = true;
+        const indexFirstCntr = counters.length - 1;
+        const indexLastCntr = 0;
+        let indexCurrCntr = indexFirstCntr;
+
+        startPositions.forEach((start, i) => {
+            counters[i] = start;
+            set[i] = dicts[i][start];
+        });
 
         while(loop) {
 
-            while(counters[firstC] < rangeLimit[firstC]) {
+            while(counters[indexFirstCntr] < rangeLimit[indexFirstCntr]) {
 
-                set[firstC] = dict[firstC][counters[firstC]];
+                set[indexFirstCntr] = dicts[indexFirstCntr][ counters[indexFirstCntr] ];
         
-                if(callback(set)) {
+                if( predicateFn(set) ) {
                     return set;
                 }
 
-                counters[firstC]++;
+                counters[indexFirstCntr]++;
             }
 
-            while(counters[indC] === rangeLimit[indC]) {
+            while(counters[indexCurrCntr] === rangeLimit[indexCurrCntr]) {
 
-                if(indC === lastC) {
+                if(indexCurrCntr === indexLastCntr) {
                     return lastSet;
                 }
                 
-                counters[indC] = 0;
-                set[indC] = dict[indC][counters[indC]];
-                indC--;
-                counters[indC]++;
+                counters[indexCurrCntr] = 0;
+                set[indexCurrCntr] = dicts[indexCurrCntr][ counters[indexCurrCntr] ];
+                indexCurrCntr--;
+                counters[indexCurrCntr]++;
             }
         
-            set[indC] = dict[indC][counters[indC]];
+            set[indexCurrCntr] = dicts[indexCurrCntr][ counters[indexCurrCntr] ];
 
-            if(callback(set)) {
+            if( predicateFn(set) ) {
                 return set;
             }
 
-            counters[firstC]++;
-            indC = firstC;
+            counters[indexFirstCntr]++;
+            indexCurrCntr = indexFirstCntr;
         }
     }
 }
 
-
-
 export {CounterBuilder}
-
-
-
-//???: delete this line after testing
-/*
-const alp = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-const alpLen = alp.length;
-const temp = [];
-const pass = [];
-const brut = new Set();
-const dict = [];
-const K = 6;
-
-for(let i = 0; i < K; i++) {
-    //pass.push(alp[Math.floor(Math.random() * alpLen)]);
-    dict.push([...alp].sort((a, b) => Math.random() - 0.5));    
-    temp.push(dict[i][0]);
-    pass.push(dict[i][Math.floor(Math.random() * alpLen)]);
-}
-
-brut.add(pass.join(''));
-
-console.log(dict, temp,pass.join(''));
-
-console.time('premRep');
-premRep(alpLen, K, (c, len, set) => {    
-
-    while(c < len) {
-        temp[c] = dict[c][set[c]];
-        c++;
-    }    
-
-    return brut.has(temp.join(''));
-});
-
-console.log(temp);
-console.timeEnd('premRep');
-
-const counter = new CounterBuilder();
-
-for(let d of dict) {
-    counter.addCounter(d);
-}
-
-const prem = counter.create();
-
-
-console.time('builder');
-console.log(prem( set => {
-     return brut.has(set.join(''));
-}));
-console.timeEnd('builder');
-*/

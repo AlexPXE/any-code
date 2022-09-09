@@ -156,6 +156,16 @@ class RSAKeys {
     get privateKey() {
         return this.#getKey('privateExp', 'module', `description`);
     }
+
+    toJSON() {
+        return {
+            description: this.#description,
+            module: this.#module,
+            publicExp: this.#publicExp,
+            privateExp: this.#privateExp,
+            size: this.#size,
+        };
+    }
 }
 
 

@@ -1,6 +1,6 @@
 
 "use strict";
-import { Llist } from "../datastructures/llist.js";
+import { DLList } from "../datastructures/llist.js";
 
 /**
  * The math module contains functions for mathematical operations.
@@ -201,7 +201,7 @@ class CommonFractionBig {
     static arithmeticParse(str) {
 
         let level = 0;                  
-        const stack = new Llist();      
+        const stack = new DLList();      
 
         const result = str.replace(/\s+/g, '')
             .match(REGEXP_FOR_COMMONFRACTIONBIG_CLASS);

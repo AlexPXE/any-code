@@ -1,6 +1,6 @@
 
 "use strict";
-import { Llist } from "../datastructures/llist.js";
+import { DLList as Llist } from "../datastructures/llist.js";
 
 /**
  * The math module contains functions for mathematical operations.

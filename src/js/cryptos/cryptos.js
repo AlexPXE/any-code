@@ -208,7 +208,7 @@ class TextCrypto {
         });
 
         result.description = description;        
-        result.decrypted = this.#decoder.decode(new Uint8Array(decrypted
+        result.decrypted = this.#decoder.decode( new Uint8Array(decrypted
             .filterUint8(value => value !== 0)
         )); 
 

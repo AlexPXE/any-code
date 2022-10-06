@@ -103,8 +103,7 @@ class CommonFractionBig {
                     }                    
                     numerator = value;                
                 }
-            },    
-
+            },
             
             denominator:{                
             /**
@@ -443,8 +442,6 @@ function random(min, max) {
 /**
  * Fast pow algorithm.
  * Works with [BigInt only](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt).
- *  
- * 
  * 
  * @param {bigint} n Number thet will be raised to the power. `bigint` only.
  * @param {bigint} p Exponent. Default `p === 2n`. Must be positive `bigint`.

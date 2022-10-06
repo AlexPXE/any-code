@@ -111,9 +111,8 @@ class ReverseTimer {
         
 
         /**
-         * 
          * Stops the timer. Values ​​of the output elements will not be set to zero.
-         * @returns {void}         * 
+         * @returns {void}          
          */
         this.stopTimer = () => {
             if(timerId !== undefined) {
@@ -165,7 +164,6 @@ class ReverseTimer {
                     this.resetTimer();
                 }
             }, 1000);
-
         };
 
         /**
@@ -236,4 +234,35 @@ const newReverseTimer = timerOutput => {
     return start;
 };
 
-export {ReverseTimer, newReverseTimer};
+async function asyncTimer(deadLine) {
+    let stopDate;
+    let timerId;
+
+    switch (typeof deadLine) {
+        case 'string':
+            stopDate = ~~(Date.parse(deadLine) / 1000);
+
+            if (Number.isNaN(stopDate)) {
+                throw new Error('Invalid deadline!');
+            }
+            break;
+
+        case 'number':
+            stopDate = deadLine + ~~(Date.now() / 1000);
+    }
+
+    await new Promise((resolve, reject) => {
+        timerId = setInterval(() => {
+            let secNow = ~~(Date.now() / 1000);
+    
+            if (secNow >= stopDate) {
+                clearInterval(timerId);
+                resolve();                
+            }
+        }, 1000);        
+    });
+
+    return 0;
+}
+
+export {ReverseTimer, newReverseTimer, asyncTimer};

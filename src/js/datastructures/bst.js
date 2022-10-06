@@ -66,16 +66,22 @@ const AVLTreeClassesCreator = classCreator => {
     
         delete(key, predicateFn = data => true) {
             const pFields = privateFields.get(this);
-            const status = {success: false};        
+            const status = {success: false};      
 
-            pFields.root = pFields.utils.removeNode(pFields.root, key, predicateFn, status);
-            
+            pFields.root = pFields.utils.removeNode(pFields.root, key, predicateFn, status);            
             return status.success;
         },
     
         destroy() {
             privateFields.get(this).root = null;
             return this;
+        },
+
+        toJSON() {            
+            return this.reduce(
+                (arr, data) => arr.push(data),
+                []
+            );
         }
     });
 

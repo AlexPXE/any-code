@@ -1,4 +1,5 @@
 "use strict";
+import { random } from "../math/math.js";
 /**
  * **Just different timer classes and functions.**
  * 
@@ -234,7 +235,13 @@ const newReverseTimer = timerOutput => {
     return start;
 };
 
-async function asyncTimer(deadLine) {
+/**
+ * Just a timer function
+ * @param {string|number} deadLine deadLine String date in the format 'YYYY-MM-DD HH:MM:SS' or any format date 
+ * compatible with the RFC2822 / IETF or ISO 8601 standard or number of seconds
+ * @returns {Promise<0>}
+ */
+function asyncTimer(deadLine) {
     let stopDate;
     let timerId;
 
@@ -251,18 +258,87 @@ async function asyncTimer(deadLine) {
             stopDate = deadLine + ~~(Date.now() / 1000);
     }
 
-    await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         timerId = setInterval(() => {
             let secNow = ~~(Date.now() / 1000);
     
             if (secNow >= stopDate) {
                 clearInterval(timerId);
-                resolve();                
+                resolve(0);
             }
         }, 1000);        
     });
-
-    return 0;
 }
 
-export {ReverseTimer, newReverseTimer, asyncTimer};
+/**
+ * During the specified time, calls the function with the specified frequency
+ * @param {string|number} deadLine deadLine String date in the format 'YYYY-MM-DD HH:MM:SS' or any format date 
+ * compatible with the RFC2822 / IETF or ISO 8601 standard or number of milliseconds
+ * @param {number} from Call interval lower bound in milliseconds
+ * @param {number} to Upper bound of call interval in milliseconds
+ * @param {function} callbackFn The function to be called. It should return a promise that should resolve to true to keep running or false to stop the timer.
+ * @returns {Promise<boolean>} Promise resolves to true if deadLine has expired or false if callbackFn returns false
+ */
+function randomPeriodTimer(deadLine, from, to, callbackFn) {
+   
+    let stopDate;
+    let mainTimerId;
+    let periodTimerId;    
+
+    switch (typeof deadLine) {
+        case 'string':
+            stopDate = Date.parse(deadLine);
+
+            if ( Number.isNaN(stopDate) ) {
+                throw new Error('Invalid deadline!');
+            }
+            break;
+
+        case 'number':
+            stopDate = deadLine + Date.now();   
+    }
+    
+
+    return new Promise(
+
+        (resolve, reject) => {
+
+            periodTimerId = setTimeout(        
+                async function periodCb() {
+
+                    if( await callbackFn() === false ) {
+                        clearInterval(periodTimerId);
+                        clearInterval(mainTimerId);
+                        resolve(false);
+                        return;
+                    }
+                    
+                    periodTimerId = setTimeout( 
+                        periodCb, 
+                        random(from, to) 
+                    );
+                }, 
+                random(from, to)
+            );
+            
+            mainTimerId = setInterval(
+                () => {
+
+                    if ( Date.now() >= stopDate ) {
+                        clearInterval(periodTimerId);
+                        clearInterval(mainTimerId);                        
+                        resolve(true);
+                    }
+                }, 
+                1000
+            );        
+        }
+    );
+}
+
+export {
+    ReverseTimer,
+    newReverseTimer,
+    asyncTimer,
+    randomPeriodTimer
+};

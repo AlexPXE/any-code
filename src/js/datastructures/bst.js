@@ -97,8 +97,8 @@ const AVLTreeClassesCreator = classCreator => {
             function(utils) {
                 privateFields.set(this, {utils, root: null});
             }
-        )({//TODO: test method
-            filter(key, predicateFn = () => true) {
+        )({//TEST IT: test method
+            filter(key, predicateFn = (data) => true) {
                 const pFields = privateFields.get(this);
 
                 return pFields.utils.filter(pFields.root, key, predicateFn);

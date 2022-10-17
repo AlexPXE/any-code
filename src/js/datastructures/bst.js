@@ -97,11 +97,23 @@ const AVLTreeClassesCreator = classCreator => {
             function(utils) {
                 privateFields.set(this, {utils, root: null});
             }
-        )({//TEST IT: test method
-            filter(key, predicateFn = (data) => true) {
+        )({
+            //TEST IT: test method
+            filterBykey(key, predicateFn = (data) => true) {
                 const pFields = privateFields.get(this);
 
-                return pFields.utils.filter(pFields.root, key, predicateFn);
+                return pFields.utils.filterBykey(pFields.root, key, predicateFn);
+            },
+            filter(predicateFn) {                
+                return this.reduce(
+                    (acc, data) => {
+                        if ( predicateFn(data) ) {
+                            acc.push(data);
+                        }
+                        return acc
+                    },
+                    []
+                );
             }
         })
     });
@@ -396,7 +408,7 @@ const AVLTreeUtilsClassesCreator = classCreator => {
                 return node === null ? node : node.data.find(predicateFn);
             },
             //TODO: test
-            filter(root, key, predicateFn) {
+            filterBykey(root, key, predicateFn) {
                 const node = this.findNode(root, key);                  
                 return node === null ? new LList() : node.data.filter(predicateFn);
             },

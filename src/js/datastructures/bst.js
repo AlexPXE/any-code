@@ -97,8 +97,7 @@ const AVLTreeClassesCreator = classCreator => {
             function(utils) {
                 privateFields.set(this, {utils, root: null});
             }
-        )({
-            //TEST IT: test method
+        )({            
             filterBykey(key, predicateFn = (data) => true) {
                 const pFields = privateFields.get(this);
 
@@ -110,7 +109,7 @@ const AVLTreeClassesCreator = classCreator => {
                         if ( predicateFn(data) ) {
                             acc.push(data);
                         }
-                        return acc
+                        return acc;
                     },
                     []
                 );
@@ -407,7 +406,7 @@ const AVLTreeUtilsClassesCreator = classCreator => {
                 const node = this.findNode(root, key);    
                 return node === null ? node : node.data.find(predicateFn);
             },
-            //TODO: test
+            
             filterBykey(root, key, predicateFn) {
                 const node = this.findNode(root, key);                  
                 return node === null ? new LList() : node.data.filter(predicateFn);

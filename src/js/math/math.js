@@ -1,5 +1,9 @@
 
 "use strict";
+<<<<<<< HEAD
+=======
+import { DLList as Llist } from "../datastructures/llist.js";
+>>>>>>> 22d53cab4dc2b1cab4c5d2599b2a0341d5c3f174
 
 /**
  * The math module contains functions for mathematical operations.
@@ -102,8 +106,7 @@ class CommonFractionBig {
                     }                    
                     numerator = value;                
                 }
-            },    
-
+            },
             
             denominator:{                
             /**
@@ -442,8 +445,6 @@ function random(min, max) {
 /**
  * Fast pow algorithm.
  * Works with [BigInt only](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt).
- *  
- * 
  * 
  * @param {bigint} n Number thet will be raised to the power. `bigint` only.
  * @param {bigint} p Exponent. Default `p === 2n`. Must be positive `bigint`.

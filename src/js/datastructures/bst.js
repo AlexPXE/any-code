@@ -66,16 +66,22 @@ const AVLTreeClassesCreator = classCreator => {
     
         delete(key, predicateFn = data => true) {
             const pFields = privateFields.get(this);
-            const status = {success: false};        
+            const status = {success: false};      
 
-            pFields.root = pFields.utils.removeNode(pFields.root, key, predicateFn, status);
-            
+            pFields.root = pFields.utils.removeNode(pFields.root, key, predicateFn, status);            
             return status.success;
         },
     
         destroy() {
             privateFields.get(this).root = null;
             return this;
+        },
+
+        toJSON() {            
+            return this.reduce(
+                (arr, data) => arr.push(data),
+                []
+            );
         }
     });
 
@@ -91,11 +97,22 @@ const AVLTreeClassesCreator = classCreator => {
             function(utils) {
                 privateFields.set(this, {utils, root: null});
             }
-        )({//TODO: test method
-            filter(key, predicateFn = () => true) {
+        )({            
+            filterBykey(key, predicateFn = (data) => true) {
                 const pFields = privateFields.get(this);
 
-                return pFields.utils.filter(pFields.root, key, predicateFn);
+                return pFields.utils.filterBykey(pFields.root, key, predicateFn);
+            },
+            filter(predicateFn) {                
+                return this.reduce(
+                    (acc, data) => {
+                        if ( predicateFn(data) ) {
+                            acc.push(data);
+                        }
+                        return acc;
+                    },
+                    []
+                );
             }
         })
     });
@@ -389,8 +406,8 @@ const AVLTreeUtilsClassesCreator = classCreator => {
                 const node = this.findNode(root, key);    
                 return node === null ? node : node.data.find(predicateFn);
             },
-            //TODO: test
-            filter(root, key, predicateFn) {
+            
+            filterBykey(root, key, predicateFn) {
                 const node = this.findNode(root, key);                  
                 return node === null ? new LList() : node.data.filter(predicateFn);
             },
